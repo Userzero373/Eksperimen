@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Penelitian Pengalaman Belajar</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --kartu: #ffffff;
+    --teks: #1f2933;
+    --redup: #5f6b76;
+    --aksen: #2f6f5e;
+    --aksen-gelap: #245a4c;
+    --garis: #e3ded3;
+    --salah: #b4422f;
+    --lembut: #eef5f2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--teks);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    font-size: 17px;
+  }
+  .progres { position: sticky; top: 0; height: 5px; background: var(--garis); z-index: 10; }
+  #bar { height: 100%; width: 0; background: var(--aksen); transition: width .3s ease; }
+  main { max-width: 720px; margin: 0 auto; padding: 20px 16px 60px; }
+  .langkah { display: none; }
+  .langkah.aktif { display: block; }
+  .kartu {
+    background: var(--kartu);
+    border: 1px solid var(--garis);
+    border-radius: 14px;
+    padding: 22px 20px;
+    margin-bottom: 16px;
+  }
+  h1 { font-size: 1.45rem; margin: 0 0 6px; line-height: 1.3; }
+  h2 { font-size: 1.2rem; margin: 0 0 12px; line-height: 1.35; }
+  p { margin: 0 0 12px; }
+  ul { margin: 0 0 12px; padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  .redup { color: var(--redup); font-size: .93rem; }
+  .uji {
+    display: none;
+    background: #fff7e0;
+    border: 1px solid #ecd38a;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: .92rem;
+  }
+  .persetujuan {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--lembut);
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 14px;
+    cursor: pointer;
+  }
+  .persetujuan input { width: 22px; height: 22px; margin-top: 3px; flex-shrink: 0; accent-color: var(--aksen); }
+  button {
+    font: inherit;
+    font-weight: 600;
+    background: var(--aksen);
+    color: #fff;
+    border: 0;
+    border-radius: 10px;
+    padding: 12px 22px;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  button:hover:not(:disabled) { background: var(--aksen-gelap); }
+  button:disabled { background: #b9c4c0; cursor: not-allowed; }
+  input[type="text"] {
+    font: inherit;
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid var(--garis);
+    border-radius: 10px;
+    margin-top: 6px;
+  }
+  input[type="text"]:focus { outline: 2px solid var(--aksen); border-color: var(--aksen); }
+  .galat {
+    display: none;
+    color: var(--salah);
+    background: #fdf0ed;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 12px;
+    font-size: .95rem;
+  }
+  .bacaan { background: #fffdf7; }
+  .bacaan p { text-align: left; }
+  fieldset.soal { border: 0; padding: 0; margin: 0 0 22px; }
+  fieldset.soal legend { font-weight: 600; padding: 0; margin-bottom: 10px; }
+  .opsi {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border: 1.5px solid var(--garis);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .opsi:has(input:checked) { border-color: var(--aksen); background: var(--lembut); }
+  .opsi input { margin-top: 5px; accent-color: var(--aksen); flex-shrink: 0; }
+  .likert { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .titik {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+    padding: 8px 2px;
+    border: 1.5px solid var(--garis);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: .78rem;
+    line-height: 1.25;
+  }
+  .titik input { position: absolute; opacity: 0; pointer-events: none; }
+  .titik .angka { font-size: 1.15rem; font-weight: 700; }
+  .titik:has(input:checked) { border-color: var(--aksen); background: var(--aksen); color: #fff; }
+  .titik:has(input:focus-visible) { outline: 2px solid var(--aksen); outline-offset: 2px; }
+  @media (max-width: 420px) {
+    body { font-size: 16px; }
+    .titik { font-size: .7rem; }
+  }
+</style>
+</head>
+<body>
+<div class="progres"><div id="bar"></div></div>
+<main>
+
+  <div class="uji" id="mode-uji">
+    <strong>Mode uji coba.</strong> Alamat penyimpanan data belum diisi, jadi jawaban tidak akan tersimpan.
+  </div>
+
+  <!-- 1. PERSETUJUAN -->
+  <section class="langkah" id="consent">
+    <div class="kartu">
+      <h1>Penelitian Pengalaman Belajar</h1>
+      <p class="redup">Lembar persetujuan mengikuti penelitian</p>
+      <p>Halo! Kami mahasiswa Psikologi UIN Sunan Kalijaga Yogyakarta. Kami sedang melakukan penelitian tentang pengalaman siswa saat mengerjakan tugas belajar.</p>
+      <p><strong>Apa yang akan kamu lakukan?</strong> Membaca sebuah teks, menjawab beberapa pertanyaan, lalu mengisi beberapa pernyataan tentang perasaanmu saat mengerjakan tugas tadi. Waktunya tidak dibatasi, biasanya sekitar 10 sampai 20 menit.</p>
+      <ul>
+        <li>Ikut atau tidaknya bersifat <strong>sukarela</strong>. Kamu boleh berhenti kapan saja tanpa ada akibat apa pun, termasuk pada nilaimu.</li>
+        <li>Pada pernyataan tentang perasaan, <strong>tidak ada jawaban benar atau salah</strong>. Jawablah sesuai yang kamu rasakan.</li>
+        <li>Kami <strong>tidak meminta namamu</strong>. Jawabanmu hanya dipakai untuk tugas perkuliahan dan dilaporkan secara gabungan, bukan per orang.</li>
+        <li>Risikonya sangat kecil. Kamu mungkin merasa sedikit bosan atau lelah.</li>
+      </ul>
+      <p class="redup" id="kontak" style="display:none"></p>
+      <label class="persetujuan">
+        <input type="checkbox" id="cek-setuju">
+        <span>Saya sudah membaca penjelasan di atas dan saya bersedia ikut dalam penelitian ini dengan sukarela.</span>
+      </label>
+      <button id="btn-lanjut-consent" disabled>Lanjut</button>
+    </div>
+  </section>
+
+  <!-- 2. IDENTITAS -->
+  <section class="langkah" id="identitas">
+    <div class="kartu">
+      <h2>Kode kelas</h2>
+      <p>Tulis kode kelas yang diberikan oleh peneliti atau gurumu.</p>
+      <label for="kode-kelas" class="redup">Kode kelas (contoh: XI-IPA-1)</label>
+      <input type="text" id="kode-kelas" autocomplete="off" maxlength="30">
+      <div class="galat" id="err-identitas"></div>
+      <button id="btn-daftar">Lanjut</button>
+    </div>
+  </section>
+
+  <!-- 3. INSTRUKSI -->
+  <section class="langkah" id="instruksi">
+    <div class="kartu">
+      <h2>Petunjuk</h2>
+      <p>Sebentar lagi kamu akan membaca sebuah teks tentang tidur pada remaja, lalu menjawab beberapa pertanyaan pilihan ganda.</p>
+      <ul>
+        <li>Waktunya bebas, tidak ada batas. Kerjakan dengan sungguh-sungguh.</li>
+        <li>Kerjakan sendiri, tanpa berdiskusi dengan teman.</li>
+        <li>Selama mengerjakan, kamu boleh melihat teks kapan saja.</li>
+        <li>Semua pertanyaan harus dijawab sebelum bisa lanjut.</li>
+      </ul>
+      <button id="btn-mulai">Mulai</button>
+    </div>
+  </section>
+
+  <!-- 4. TUGAS -->
+  <section class="langkah" id="tugas">
+    <div class="kartu bacaan">
+      <h2 id="judul-teks"></h2>
+      <div id="isi-teks"></div>
+    </div>
+    <div class="kartu">
+      <div id="daftar-soal"></div>
+      <div class="galat" id="err-tugas"></div>
+      <button id="btn-selesai-tugas">Selesai mengerjakan</button>
+    </div>
+  </section>
+
+  <!-- 5. SKALA -->
+  <section class="langkah" id="skala">
+    <div class="kartu">
+      <h2>Bagaimana perasaanmu?</h2>
+      <p>Pilih seberapa setuju kamu dengan setiap pernyataan, berdasarkan tugas yang <strong>baru saja</strong> kamu kerjakan. Tidak ada jawaban benar atau salah.</p>
+      <p class="redup">1 = sangat tidak setuju, 5 = sangat setuju</p>
+      <div id="daftar-skala"></div>
+      <div class="galat" id="err-skala"></div>
+      <button id="btn-kirim">Kirim jawaban</button>
+    </div>
+  </section>
+
+  <!-- 6. SELESAI -->
+  <section class="langkah" id="selesai">
+    <div class="kartu">
+      <h2>Terima kasih sudah ikut!</h2>
+      <p>Jawabanmu sudah tersimpan.</p>
+      <p>Sedikit penjelasan: penelitian ini ingin tahu apakah tingkat kesulitan tugas memengaruhi rasa bosan saat belajar. Karena itu, teks dan pertanyaan yang kamu terima bisa berbeda dengan teman di sebelahmu. Itu memang disengaja dan diacak oleh sistem, bukan karena kemampuanmu.</p>
+      <p class="redup">Kamu boleh menutup halaman ini.</p>
+      <div class="uji" id="catatan-uji"><strong>Mode uji coba.</strong> Data tidak dikirim ke mana pun. Lihat isi data di konsol browser.</div>
+    </div>
+  </section>
+
+</main>
+<script>
+/* ============================================================
+   PENGATURAN (isi sebelum dipakai)
+   ============================================================ */
+const CONFIG = {
+  // Tempel URL Web App dari Google Apps Script di sini.
+  // Kalau dikosongkan, aplikasi berjalan dalam MODE UJI COBA (data tidak tersimpan).
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbykZ3ULwTzBwhbtSoUjf1CT5tS2JKZXjSWZGUiP5ZW7YfEtGtTCZdj4PUwgaSROzAWW1w/exec',
+
+  // Opsional: kontak peneliti yang tampil di halaman persetujuan.
+  KONTAK_PENELITI: '0895396134770'
+};
+
+/* ============================================================
+   MATERI TUGAS
+   Topik sama untuk ketiga kelompok (tidur remaja), supaya yang
+   berbeda hanya tingkat kesulitannya.
+   ============================================================ */
+const MATERI = {
+  mudah: {
+    judul: 'Tidur Itu Penting',
+    teks: [
+      'Remaja butuh tidur yang cukup. Tidur membantu tubuh beristirahat. Tidur juga membantu otak mengingat pelajaran.',
+      'Remaja biasanya butuh tidur sekitar delapan sampai sepuluh jam setiap malam. Kalau kurang tidur, siang hari jadi mengantuk.'
+    ],
+    soal: [
+      {
+        q: 'Berapa jam tidur yang biasanya dibutuhkan remaja setiap malam?',
+        opsi: ['Dua sampai tiga jam', 'Lima sampai enam jam', 'Delapan sampai sepuluh jam', 'Empat belas sampai lima belas jam'],
+        benar: 2
+      },
+      {
+        q: 'Apa yang terjadi kalau remaja kurang tidur?',
+        opsi: ['Jadi mengantuk di siang hari', 'Jadi lebih tinggi', 'Jadi lebih lapar saat malam', 'Tidak terjadi apa-apa'],
+        benar: 0
+      },
+      {
+        q: 'Tidur membantu otak untuk apa?',
+        opsi: ['Berlari', 'Mengingat pelajaran', 'Menggambar', 'Menyanyi'],
+        benar: 1
+      }
+    ]
+  },
+
+  sedang: {
+    judul: 'Mengapa Remaja Sulit Bangun Pagi?',
+    teks: [
+      'Banyak remaja merasa sangat mengantuk di pagi hari. Penyebabnya bukan semata-mata malas. Saat memasuki masa pubertas, jam biologis tubuh bergeser. Hormon melatonin, yang memberi sinyal bahwa sudah waktunya tidur, baru dilepaskan lebih malam dibandingkan pada anak-anak. Akibatnya, remaja cenderung baru merasa mengantuk sekitar pukul sebelas malam atau lebih.',
+      'Masalah muncul karena sekolah umumnya mulai pagi. Remaja yang baru bisa tidur larut harus bangun sangat pagi, sehingga total waktu tidurnya berkurang. Padahal kebutuhan tidur remaja sekitar delapan sampai sepuluh jam per malam. Kekurangan tidur yang terus berulang membuat konsentrasi menurun, suasana hati mudah berubah, dan daya ingat melemah.',
+      'Beberapa sekolah mencoba menunda jam masuk, misalnya dari pukul 07.00 menjadi 08.30. Hasil awalnya cukup menjanjikan: siswa tidur lebih lama dan lebih sedikit yang terlambat. Meski begitu, kebiasaan juga berperan. Memakai ponsel hingga larut malam dapat memperburuk keadaan karena cahaya layar dapat menunda rasa kantuk.'
+    ],
+    soal: [
+      {
+        q: 'Mengapa remaja cenderung baru mengantuk pada malam yang larut?',
+        opsi: [
+          'Karena mereka malas tidur lebih awal',
+          'Karena melatonin dilepaskan lebih lambat setelah pubertas',
+          'Karena kebutuhan tidur remaja lebih sedikit',
+          'Karena pelajaran di sekolah terlalu banyak'
+        ],
+        benar: 1
+      },
+      {
+        q: 'Mengapa jam masuk sekolah yang pagi menjadi masalah bagi remaja?',
+        opsi: [
+          'Remaja tidak suka pelajaran pagi',
+          'Remaja harus bangun pagi padahal baru bisa tidur larut, sehingga waktu tidurnya berkurang',
+          'Melatonin berhenti diproduksi pada pagi hari',
+          'Remaja lebih suka belajar sendiri di rumah'
+        ],
+        benar: 1
+      },
+      {
+        q: 'Manakah yang BUKAN dampak kekurangan tidur menurut teks?',
+        opsi: ['Konsentrasi menurun', 'Suasana hati mudah berubah', 'Daya ingat meningkat', 'Daya ingat melemah'],
+        benar: 2
+      },
+      {
+        q: 'Apa hasil awal dari penundaan jam masuk sekolah menurut teks?',
+        opsi: [
+          'Siswa tidur lebih lama dan lebih sedikit yang terlambat',
+          'Siswa tidak lagi memakai ponsel',
+          'Nilai ujian naik pada semua sekolah',
+          'Siswa tidur lebih sebentar'
+        ],
+        benar: 0
+      },
+      {
+        q: 'Kesimpulan yang paling tepat dari teks ini adalah...',
+        opsi: [
+          'Masalah tidur remaja hanya disebabkan oleh kebiasaan memakai ponsel',
+          'Masalah tidur remaja hanya disebabkan oleh jam sekolah',
+          'Masalah tidur remaja dipengaruhi perubahan biologis dan juga kebiasaan sehari-hari',
+          'Masalah tidur remaja akan hilang dengan sendirinya'
+        ],
+        benar: 2
+      }
+    ]
+  },
+
+  sulit: {
+    judul: 'Biologi Tidur Remaja dan Benturannya dengan Jadwal Sosial',
+    teks: [
+      'Tidur diatur oleh dua mekanisme yang bekerja bersamaan. Pertama, ritme sirkadian, yaitu jam internal berperiode sekitar 24 jam yang mengatur kapan tubuh siaga dan kapan siap tidur. Kedua, tekanan tidur homeostatik, yaitu dorongan untuk tidur yang menumpuk selama seseorang terjaga dan berkurang saat ia tidur. Rasa kantuk pada suatu waktu merupakan hasil interaksi kedua mekanisme tersebut, bukan akibat salah satunya saja.',
+      'Pada masa pubertas, kedua mekanisme ini mengalami perubahan. Ritme sirkadian bergeser sehingga pelepasan melatonin terjadi lebih lambat, yang disebut fase tertunda. Di sisi lain, tekanan tidur homeostatik pada remaja menumpuk lebih lambat dibandingkan pada anak-anak, sehingga remaja mampu terjaga lebih lama tanpa merasa sangat lelah. Gabungan keduanya menggeser jam tidur alami remaja ke waktu yang lebih malam. Pergeseran ini bersifat biologis dan ditemukan pada remaja di berbagai budaya, meskipun besarnya dapat dipengaruhi lingkungan.',
+      'Benturan terjadi dengan jadwal sosial. Jam masuk sekolah ditetapkan tanpa memperhitungkan pergeseran biologis tersebut, sehingga remaja kerap harus bangun ketika tubuhnya masih berada pada fase biologis malam. Banyak remaja lalu menutup kekurangan tidur pada akhir pekan dengan bangun sangat siang. Pola ini memunculkan jet lag sosial, yaitu selisih antara jam tidur pada hari sekolah dan pada hari libur. Tidur ekstra di akhir pekan dapat meredakan kantuk sesaat, tetapi tidak serta-merta memulihkan penurunan kinerja kognitif yang sudah terjadi selama minggu sekolah, dan perubahan jadwal yang drastis justru dapat mengganggu ritme sirkadian.',
+      'Sebagian peneliti mengusulkan penundaan jam masuk sekolah. Studi pada sekolah yang menerapkannya melaporkan durasi tidur yang lebih panjang dan kewaspadaan yang lebih baik. Namun, para pengkritik menunjukkan bahwa sebagian studi tidak memiliki kelompok pembanding yang memadai, sehingga perbaikan yang terlihat bisa dipengaruhi faktor lain, seperti perubahan jadwal kegiatan atau kebijakan sekolah secara umum. Selain itu, penundaan jam masuk menggeser jam pulang, yang dapat mengganggu kegiatan ekstrakurikuler, pekerjaan paruh waktu, dan jadwal transportasi.',
+      'Dengan demikian, persoalan tidur remaja tidak dapat dipandang sebagai urusan kedisiplinan individu semata, tetapi juga bukan masalah yang selesai hanya dengan mengubah satu kebijakan.'
+    ],
+    soal: [
+      {
+        q: 'Menurut teks, rasa kantuk pada suatu waktu ditentukan oleh...',
+        opsi: [
+          'Ritme sirkadian saja',
+          'Tekanan tidur homeostatik saja',
+          'Interaksi ritme sirkadian dan tekanan tidur homeostatik',
+          'Jumlah melatonin yang dikonsumsi dari luar tubuh'
+        ],
+        benar: 2
+      },
+      {
+        q: 'Mengapa remaja mampu terjaga lebih lama tanpa merasa sangat lelah dibandingkan anak-anak?',
+        opsi: [
+          'Melatonin dilepaskan lebih cepat pada remaja',
+          'Ritme sirkadian remaja berperiode lebih pendek dari 24 jam',
+          'Tekanan tidur homeostatik pada remaja menumpuk lebih lambat',
+          'Remaja membutuhkan tidur lebih sedikit dari orang dewasa'
+        ],
+        benar: 2
+      },
+      {
+        q: 'Apa yang dimaksud dengan jet lag sosial dalam teks?',
+        opsi: [
+          'Rasa lelah setelah perjalanan jauh',
+          'Selisih jam tidur antara hari sekolah dan hari libur',
+          'Gangguan tidur akibat terlalu banyak bersosialisasi',
+          'Keterlambatan melatonin akibat cahaya layar'
+        ],
+        benar: 1
+      },
+      {
+        q: 'Seorang remaja tidur pukul 23.00 dan bangun pukul 05.30 pada hari sekolah. Pada hari libur ia tidur pukul 01.00 dan bangun pukul 11.00. Keadaan ini paling tepat menggambarkan...',
+        opsi: [
+          'Fase tertunda yang sudah pulih sepenuhnya',
+          'Jet lag sosial yang cukup besar',
+          'Tekanan tidur homeostatik yang menurun',
+          'Jadwal tidur yang sehat dan konsisten'
+        ],
+        benar: 1
+      },
+      {
+        q: 'Pernyataan mana yang paling sesuai dengan teks tentang tidur ekstra pada akhir pekan?',
+        opsi: [
+          'Memulihkan sepenuhnya penurunan kinerja kognitif selama minggu sekolah',
+          'Tidak berpengaruh sama sekali pada rasa kantuk',
+          'Dapat meredakan kantuk sesaat, tetapi belum tentu memulihkan kinerja kognitif dan dapat mengganggu ritme sirkadian',
+          'Selalu memperbaiki ritme sirkadian'
+        ],
+        benar: 2
+      },
+      {
+        q: 'Apa kelemahan sebagian studi penundaan jam masuk sekolah menurut para pengkritik?',
+        opsi: [
+          'Terlalu banyak melibatkan siswa',
+          'Tidak memiliki kelompok pembanding yang memadai, sehingga faktor lain bisa ikut berpengaruh',
+          'Hanya dilakukan di sekolah swasta',
+          'Menunjukkan bahwa durasi tidur justru menurun'
+        ],
+        benar: 1
+      },
+      {
+        q: 'Kesimpulan yang paling sesuai dengan paragraf terakhir adalah...',
+        opsi: [
+          'Masalah tidur remaja murni soal kedisiplinan pribadi',
+          'Masalah tidur remaja pasti selesai dengan menunda jam masuk sekolah',
+          'Faktor biologis dan jadwal sosial sama-sama berperan, dan tidak ada satu kebijakan yang menyelesaikan semuanya',
+          'Remaja sebaiknya tidur lebih sedikit pada hari sekolah'
+        ],
+        benar: 2
+      }
+    ]
+  }
+};
+
+/* ============================================================
+   SKALA BOREDOM (diadaptasi dari AEQ-S, Learning-related
+   Emotions: Boredom; dialihbahasakan dan disesuaikan konteks)
+   ============================================================ */
+const SKALA_BOREDOM = [
+  'Mengerjakan tugas ini membosankan bagi saya.',
+  'Tugas ini sangat membosankan sampai saya melamun.',
+  'Saya lebih ingin menunda tugas ini sampai nanti.',
+  'Saat mengerjakan tugas ini, saya kehilangan fokus karena terlalu membosankan.'
+];
+
+const LABEL_SETUJU = ['Sangat tidak setuju', 'Tidak setuju', 'Netral', 'Setuju', 'Sangat setuju'];
+const LABEL_SULIT = ['Sangat mudah', 'Mudah', 'Sedang', 'Sulit', 'Sangat sulit'];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  id: null,
+  kelas: '',
+  kelompok: null,
+  urutan: null,
+  sumber: '',
+  mulaiTugas: null,
+  payloadTerakhir: null
+};
+
+const $ = (id) => document.getElementById(id);
+
+function tampilkan(langkah) {
+  document.querySelectorAll('.langkah').forEach((el) => el.classList.remove('aktif'));
+  $(langkah).classList.add('aktif');
+  const urutan = ['consent', 'identitas', 'instruksi', 'tugas', 'skala', 'selesai'];
+  const idx = urutan.indexOf(langkah);
+  $('bar').style.width = Math.round(((idx + 1) / urutan.length) * 100) + '%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function pesan(id, teks) {
+  const el = $(id);
+  el.textContent = teks || '';
+  el.style.display = teks ? 'block' : 'none';
+}
+
+/* ============================================================
+   1. PERSETUJUAN
+   ============================================================ */
+function siapkanConsent() {
+  if (CONFIG.KONTAK_PENELITI) {
+    $('kontak').textContent = 'Kalau ada pertanyaan, hubungi: ' + CONFIG.KONTAK_PENELITI;
+    $('kontak').style.display = 'block';
+  }
+  if (!CONFIG.APPS_SCRIPT_URL) {
+    $('mode-uji').style.display = 'block';
+  }
+  $('cek-setuju').addEventListener('change', (e) => {
+    $('btn-lanjut-consent').disabled = !e.target.checked;
+  });
+  $('btn-lanjut-consent').addEventListener('click', () => tampilkan('identitas'));
+}
+
+/* ============================================================
+   2. IDENTITAS DAN PENGACAKAN OTOMATIS
+   Kelompok ditentukan dari urutan peserta di tiap kode kelas:
+   peserta 1 mudah, 2 sedang, 3 sulit, 4 mudah, dan seterusnya.
+   ============================================================ */
+const URUTAN_KELOMPOK = ['mudah', 'sedang', 'sulit'];
+
+function acakUjiCoba(kelas) {
+  const kunci = 'uji-coba-urutan:' + kelas.toLowerCase();
+  let n = 0;
+  try { n = parseInt(localStorage.getItem(kunci) || '0', 10); } catch (e) { n = 0; }
+  n += 1;
+  try { localStorage.setItem(kunci, String(n)); } catch (e) { /* abaikan */ }
+  return {
+    ok: true,
+    id: 'UJI' + String(n).padStart(3, '0'),
+    urutan: n,
+    kelompok: URUTAN_KELOMPOK[(n - 1) % 3]
+  };
+}
+
+async function daftarPeserta() {
+  const kelas = $('kode-kelas').value.trim();
+  if (!kelas) {
+    pesan('err-identitas', 'Isi kode kelas dulu ya.');
+    return;
+  }
+  pesan('err-identitas', '');
+  const tombol = $('btn-daftar');
+  tombol.disabled = true;
+  tombol.textContent = 'Menyiapkan...';
+
+  try {
+    let hasil;
+    if (!CONFIG.APPS_SCRIPT_URL) {
+      hasil = acakUjiCoba(kelas);
+      state.sumber = 'uji-coba-lokal';
+    } else {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=assign&kelas=' + encodeURIComponent(kelas);
+      const res = await fetch(url);
+      hasil = await res.json();
+      state.sumber = 'server';
+      if (!hasil || !hasil.ok) throw new Error('Respons server tidak valid');
+    }
+    state.id = hasil.id;
+    state.kelas = kelas;
+    state.kelompok = hasil.kelompok;
+    state.urutan = hasil.urutan;
+    tampilkan('instruksi');
+  } catch (err) {
+    pesan('err-identitas', 'Koneksi bermasalah. Coba klik tombol lagi. Kalau tetap gagal, kabari peneliti.');
+  } finally {
+    tombol.disabled = false;
+    tombol.textContent = 'Lanjut';
+  }
+}
+
+/* ============================================================
+   3. TUGAS MEMBACA
+   ============================================================ */
+function tampilkanTugas() {
+  const m = MATERI[state.kelompok];
+  $('judul-teks').textContent = m.judul;
+  $('isi-teks').innerHTML = '';
+  m.teks.forEach((p) => {
+    const el = document.createElement('p');
+    el.textContent = p;
+    $('isi-teks').appendChild(el);
+  });
+
+  const wadah = $('daftar-soal');
+  wadah.innerHTML = '';
+  m.soal.forEach((s, i) => {
+    const fs = document.createElement('fieldset');
+    fs.className = 'soal';
+    fs.id = 'soal-' + i;
+    const lg = document.createElement('legend');
+    lg.textContent = (i + 1) + '. ' + s.q;
+    fs.appendChild(lg);
+    s.opsi.forEach((o, j) => {
+      const label = document.createElement('label');
+      label.className = 'opsi';
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = 'q' + i;
+      input.value = String(j);
+      const span = document.createElement('span');
+      span.textContent = o;
+      label.appendChild(input);
+      label.appendChild(span);
+      fs.appendChild(label);
+    });
+    wadah.appendChild(fs);
+  });
+
+  state.mulaiTugas = Date.now();
+  tampilkan('tugas');
+}
+
+function selesaiTugas() {
+  const m = MATERI[state.kelompok];
+  for (let i = 0; i < m.soal.length; i++) {
+    if (!document.querySelector('input[name="q' + i + '"]:checked')) {
+      pesan('err-tugas', 'Masih ada pertanyaan yang belum dijawab (nomor ' + (i + 1) + ').');
+      $('soal-' + i).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+  }
+  pesan('err-tugas', '');
+  state.durasiTugas = Math.round((Date.now() - state.mulaiTugas) / 1000);
+  tampilkan('skala');
+}
+
+/* ============================================================
+   4. SKALA BOREDOM
+   ============================================================ */
+function buatLikert(nama, label) {
+  const wadah = document.createElement('div');
+  wadah.className = 'likert';
+  label.forEach((teks, i) => {
+    const l = document.createElement('label');
+    l.className = 'titik';
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = nama;
+    input.value = String(i + 1);
+    const angka = document.createElement('span');
+    angka.className = 'angka';
+    angka.textContent = String(i + 1);
+    const ket = document.createElement('span');
+    ket.className = 'ket';
+    ket.textContent = teks;
+    l.appendChild(input);
+    l.appendChild(angka);
+    l.appendChild(ket);
+    wadah.appendChild(l);
+  });
+  return wadah;
+}
+
+function siapkanSkala() {
+  const wadah = $('daftar-skala');
+  wadah.innerHTML = '';
+  SKALA_BOREDOM.forEach((teks, i) => {
+    const fs = document.createElement('fieldset');
+    fs.className = 'soal';
+    fs.id = 'skala-' + i;
+    const lg = document.createElement('legend');
+    lg.textContent = (i + 1) + '. ' + teks;
+    fs.appendChild(lg);
+    fs.appendChild(buatLikert('b' + i, LABEL_SETUJU));
+    wadah.appendChild(fs);
+  });
+
+  const fs = document.createElement('fieldset');
+  fs.className = 'soal';
+  fs.id = 'skala-sulit';
+  const lg = document.createElement('legend');
+  lg.textContent = '5. Menurut kamu, tugas membaca tadi terasa...';
+  fs.appendChild(lg);
+  fs.appendChild(buatLikert('sulit', LABEL_SULIT));
+  wadah.appendChild(fs);
+}
+
+function ambilNilai(nama) {
+  const el = document.querySelector('input[name="' + nama + '"]:checked');
+  return el ? parseInt(el.value, 10) : null;
+}
+
+async function kirimData() {
+  const boredom = [];
+  for (let i = 0; i < SKALA_BOREDOM.length; i++) {
+    const v = ambilNilai('b' + i);
+    if (v === null) {
+      pesan('err-skala', 'Pernyataan nomor ' + (i + 1) + ' belum dijawab.');
+      $('skala-' + i).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    boredom.push(v);
+  }
+  const sulit = ambilNilai('sulit');
+  if (sulit === null) {
+    pesan('err-skala', 'Pernyataan nomor 5 belum dijawab.');
+    $('skala-sulit').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  pesan('err-skala', '');
+
+  const m = MATERI[state.kelompok];
+  const jawaban = [];
+  let skor = 0;
+  m.soal.forEach((s, i) => {
+    const pilih = parseInt(document.querySelector('input[name="q' + i + '"]:checked').value, 10);
+    jawaban.push(pilih);
+    if (pilih === s.benar) skor += 1;
+  });
+
+  const rata = boredom.reduce((a, b) => a + b, 0) / boredom.length;
+
+  state.payloadTerakhir = {
+    id: state.id,
+    kelas: state.kelas,
+    urutan: state.urutan,
+    kelompok: state.kelompok,
+    durasiTugas: state.durasiTugas,
+    skor: skor,
+    jumlahSoal: m.soal.length,
+    persepsiKesulitan: sulit,
+    boredom: boredom,
+    boredomRata: Math.round(rata * 100) / 100,
+    jawaban: jawaban,
+    sumber: state.sumber
+  };
+
+  const tombol = $('btn-kirim');
+  tombol.disabled = true;
+  tombol.textContent = 'Mengirim...';
+
+  try {
+    if (!CONFIG.APPS_SCRIPT_URL) {
+      console.log('MODE UJI COBA, data yang akan dikirim:', state.payloadTerakhir);
+      $('catatan-uji').style.display = 'block';
+    } else {
+      try { localStorage.setItem('cadangan-' + state.id, JSON.stringify(state.payloadTerakhir)); } catch (e) { /* abaikan */ }
+      const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(state.payloadTerakhir)
+      });
+      const hasil = await res.json();
+      if (!hasil || !hasil.ok) throw new Error('Gagal menyimpan');
+    }
+    tampilkan('selesai');
+  } catch (err) {
+    pesan('err-skala', 'Data belum terkirim. Pastikan internet menyala lalu klik Kirim lagi. Jawabanmu tidak hilang.');
+  } finally {
+    tombol.disabled = false;
+    tombol.textContent = 'Kirim jawaban';
+  }
+}
+
+/* ============================================================
+   MULAI
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  siapkanConsent();
+  $('btn-daftar').addEventListener('click', daftarPeserta);
+  $('kode-kelas').addEventListener('keydown', (e) => { if (e.key === 'Enter') daftarPeserta(); });
+  $('btn-mulai').addEventListener('click', tampilkanTugas);
+  $('btn-selesai-tugas').addEventListener('click', () => { selesaiTugas(); });
+  $('btn-kirim').addEventListener('click', kirimData);
+  siapkanSkala();
+  tampilkan('consent');
+});
+
+</script>
+</body>
+</html>
