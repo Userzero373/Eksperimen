@@ -1,0 +1,1551 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>Penelitian Pengalaman Bermain</title>
+<style>
+  :root {
+    --bg: #f6f4ee;
+    --kartu: #ffffff;
+    --ink: #1c2530;
+    --redup: #5d6978;
+    --garis: #d9d3c5;
+    --aksen: #4a56d4;
+    --aksen-gelap: #3943b0;
+    --on-aksen: #ffffff;
+    --lembut: #eceefc;
+    --tunggu: #5d6fd6;
+    --siap: #f2b13b;
+    --menang: #23885a;
+    --kalah: #c63d37;
+    --salah: #b4422f;
+    --salah-bg: #fdf0ed;
+    --info-bg: #fff7e0;
+    --info-garis: #ecd38a;
+    --bayang: 0 2px 0 rgba(28,37,48,.04), 0 12px 28px -14px rgba(28,37,48,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12171f;
+      --kartu: #1b232e;
+      --ink: #e9eef4;
+      --redup: #a1adbb;
+      --garis: #3a4756;
+      --aksen: #8590ff;
+      --aksen-gelap: #a3abff;
+      --on-aksen: #0f1320;
+      --lembut: #232c44;
+      --tunggu: #7a8ae6;
+      --siap: #e8b758;
+      --menang: #3fb778;
+      --kalah: #e0615b;
+      --salah: #ff9884;
+      --salah-bg: #3a2420;
+      --info-bg: #3a3320;
+      --info-garis: #6b5c2a;
+      --bayang: 0 12px 28px -14px rgba(0,0,0,.6);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-text-size-adjust: 100%;
+  }
+  .tersembunyi {
+    position: absolute !important; clip-path: inset(50%) !important; overflow: hidden !important;
+    width: 1px !important; height: 1px !important; margin: -1px !important; padding: 0 !important;
+    border: 0 !important; white-space: nowrap !important;
+  }
+  .atas {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--bg);
+    border-bottom: 1px solid var(--garis);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .atas-isi {
+    max-width: 600px; margin: 0 auto;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px 8px;
+    font-weight: 700; font-size: 15px;
+  }
+  #judul-atas { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tombol-berhenti {
+    flex: 0 0 auto;
+    background: transparent; color: var(--redup);
+    border: 1px solid var(--garis); border-radius: 999px;
+    padding: 4px 14px; min-block-size: 32px; font-size: 13px; font-weight: 600;
+  }
+  .progres { height: 4px; background: var(--garis); }
+  #bar { height: 100%; width: 0; background: var(--aksen); transition: width .4s ease; border-radius: 0 4px 4px 0; }
+  main { max-width: 600px; margin: 0 auto; padding: 22px 18px 64px; }
+  .langkah { display: none; }
+  .langkah.aktif { display: block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .langkah.aktif { animation: masuk .35s ease both; }
+  }
+  @keyframes masuk { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+  [tabindex="-1"]:focus { outline: none; }
+
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 8px; letter-spacing: -.01em; }
+  h2 { font-size: 1.3rem; line-height: 1.3; margin: 0 0 8px; }
+  h3 { font-size: 1.02rem; margin: 18px 0 8px; }
+  p { margin: 0 0 12px; }
+  .redup { color: var(--redup); font-size: .94rem; }
+  .tengah { text-align: center; }
+  .kartu {
+    background: var(--kartu);
+    border: 1px solid var(--garis);
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--bayang);
+  }
+  .hero { text-align: center; font-size: 46px; line-height: 1; letter-spacing: 6px; margin: 4px 0 14px; }
+  .hero span { display: inline-block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero span { animation: melayang 3s ease-in-out infinite; }
+    .hero span:nth-child(2) { animation-delay: .35s; }
+    .hero span:nth-child(3) { animation-delay: .7s; }
+    .hero span:nth-child(4) { animation-delay: 1.05s; }
+  }
+  @keyframes melayang { 0%,100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+
+  ul.poin { list-style: none; padding: 0; margin: 0 0 14px; }
+  ul.poin li { display: flex; gap: 12px; margin-bottom: 11px; }
+  ul.poin .ik { flex: 0 0 28px; font-size: 20px; line-height: 1.45; text-align: center; }
+
+  /* Peta permainan */
+  .peta { display: grid; gap: 10px; margin: 12px 0 14px; padding: 0; list-style: none; }
+  .peta li {
+    display: flex; align-items: center; gap: 12px;
+    border: 2px dashed var(--garis); border-radius: 14px;
+    padding: 10px 14px; font-weight: 600;
+  }
+  .peta .no {
+    flex: 0 0 30px; height: 30px; border-radius: 50%;
+    background: var(--lembut); color: var(--ink);
+    font-size: 14px; display: flex; align-items: center; justify-content: center; font-weight: 800;
+  }
+  .peta .ikon { font-size: 22px; }
+  .peta .cap { margin-left: auto; font-size: 13px; color: var(--redup); font-weight: 600; }
+  .peta li.berikut { border-style: solid; border-color: var(--aksen); background: var(--lembut); }
+  .peta li.berikut .no { background: var(--aksen); color: var(--on-aksen); }
+  .peta li.beres { border-style: solid; }
+  .peta li.beres .no { background: var(--menang); color: #fff; }
+
+  .banner {
+    display: none;
+    background: var(--info-bg);
+    border: 1px solid var(--info-garis);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: .92rem;
+  }
+  .catatan { background: var(--lembut); border-radius: 12px; padding: 12px 14px; font-size: .95rem; margin: 10px 0 0; }
+  .setuju {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--lembut);
+    border-radius: 14px;
+    padding: 14px;
+    margin-top: 6px;
+    cursor: pointer;
+  }
+  .setuju input { width: 22px; height: 22px; margin-top: 3px; flex-shrink: 0; accent-color: var(--aksen); }
+
+  button { font: inherit; cursor: pointer; }
+  .tombol {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--aksen); color: var(--on-aksen);
+    border: 0; border-radius: 14px;
+    padding: 13px 26px; margin-top: 16px;
+    font-weight: 700; font-size: 1.02rem;
+    min-block-size: 48px;
+    transition: scale .12s ease, background-color .15s ease;
+  }
+  .tombol:hover:not(:disabled) { background: var(--aksen-gelap); }
+  .tombol:active:not(:disabled) { scale: .97; }
+  .tombol:disabled { opacity: .4; cursor: not-allowed; }
+  .tombol.lebar { width: 100%; }
+  .tombol.sekunder { background: transparent; color: var(--aksen); border: 2px solid var(--aksen); }
+  .tombol.sekunder:hover:not(:disabled) { background: var(--lembut); }
+  :where(a, button, input, textarea):focus-visible { outline: 3px solid var(--aksen); outline-offset: 3px; }
+
+  label.isian { display: block; font-weight: 600; margin: 16px 0 6px; }
+  input[type=text], input[type=number], textarea.jawab {
+    font: inherit; width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--garis);
+    border-radius: 12px;
+    background: var(--bg); color: var(--ink);
+  }
+  textarea.jawab { min-height: 90px; resize: vertical; }
+  input[type=text]:focus-visible, input[type=number]:focus-visible, textarea.jawab:focus-visible { outline: 3px solid var(--aksen); outline-offset: 1px; border-color: var(--aksen); }
+  input[aria-invalid="true"] { border-color: var(--salah); }
+  .dua { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pilih { position: relative; display: block; }
+  .pilih input { position: absolute; opacity: 0; pointer-events: none; }
+  .pilih span {
+    display: block; text-align: center;
+    padding: 12px 10px; min-block-size: 48px;
+    border: 2px solid var(--garis);
+    border-radius: 12px;
+    cursor: pointer;
+    background: var(--bg);
+    transition: border-color .12s, background-color .12s;
+  }
+  .pilih input:checked + span { border-color: var(--aksen); background: var(--lembut); font-weight: 700; }
+  .pilih input:focus-visible + span { outline: 3px solid var(--aksen); outline-offset: 2px; }
+
+  .galat {
+    display: none;
+    color: var(--salah); background: var(--salah-bg);
+    border-radius: 12px;
+    padding: 10px 14px; margin-top: 14px;
+    font-size: .95rem;
+  }
+
+  /* Cara bermain */
+  ol.langkah-main { padding-left: 0; list-style: none; counter-reset: n; margin: 14px 0; }
+  ol.langkah-main li { counter-increment: n; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+  ol.langkah-main li::before {
+    content: counter(n);
+    flex: 0 0 28px; height: 28px; border-radius: 50%;
+    background: var(--aksen); color: var(--on-aksen);
+    font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+  }
+  .aturan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 6px; }
+  .aturan div { text-align: center; background: var(--lembut); border-radius: 14px; padding: 12px 4px; font-size: 24px; line-height: 1.2; }
+  .aturan small { display: block; font-size: 12px; color: var(--redup); margin-top: 4px; }
+
+  /* Arena permainan: latar berbeda untuk tiap permainan */
+  .arena { border-radius: 22px; padding: 16px 14px 18px; margin: 0 -4px; }
+  .arena.tema-suit { background: linear-gradient(160deg, #e9ebff, #f6f0ff); }
+  .arena.tema-penalti { background: linear-gradient(180deg, #dff3e4, #f1f8ea); }
+  .arena.tema-gelas { background: linear-gradient(160deg, #fbefdc, #f7e6cf); }
+  .arena.tema-hompimpa { background: linear-gradient(160deg, #dcf3ee, #e6f0fb); }
+  @media (prefers-color-scheme: dark) {
+    .arena.tema-suit { background: linear-gradient(160deg, #1e2240, #261f3a); }
+    .arena.tema-penalti { background: linear-gradient(180deg, #14301f, #182a1c); }
+    .arena.tema-gelas { background: linear-gradient(160deg, #33271a, #2c2116); }
+    .arena.tema-hompimpa { background: linear-gradient(160deg, #12302b, #172537); }
+  }
+  .bar-ronde { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 15px; margin-bottom: 8px; }
+  .bar-ronde .tag { color: var(--redup); font-weight: 600; font-size: 13px; }
+  .jalur { height: 8px; background: rgba(0,0,0,.08); border-radius: 999px; overflow: hidden; margin-bottom: 14px; }
+  #isi-jalur { height: 100%; width: 0; background: var(--aksen); border-radius: 999px; transition: width .3s ease; }
+  .panggung { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 4px 0 18px; }
+  #panggung-isi { width: 100%; display: flex; justify-content: center; }
+  .nama-lawan { font-size: 14px; color: var(--redup); font-weight: 600; }
+  #status { min-height: 30px; font-weight: 700; font-size: 1.1rem; text-align: center; }
+  #status.menang { color: var(--menang); }
+  #status.kalah { color: var(--kalah); }
+  .opsi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .opsi.dua-opsi { grid-template-columns: repeat(2, 1fr); }
+  .opt {
+    border: 3px solid var(--garis); border-radius: 20px;
+    background: var(--kartu); color: var(--ink);
+    font-size: 42px; line-height: 1;
+    min-block-size: 104px; padding: 12px 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    transition: scale .1s ease, border-color .15s, background-color .15s;
+    box-shadow: var(--bayang);
+  }
+  .opt span { font-size: 15px; font-weight: 700; }
+  .opt:hover:not(:disabled) { border-color: var(--aksen); }
+  .opt:active:not(:disabled) { scale: .95; }
+  .opt:disabled { cursor: default; opacity: .55; }
+  .opt.menang { border-color: var(--menang); background: var(--menang); color: #fff; opacity: 1; }
+  .opt.kalah { border-color: var(--kalah); background: var(--kalah); color: #fff; opacity: 1; }
+  .kunci { text-align: center; margin: 12px 0 0; }
+
+  /* 1. Batu-gunting-kertas */
+  .comp {
+    width: 156px; height: 156px; border-radius: 28px;
+    background: var(--tunggu); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 74px; line-height: 1;
+    transition: background-color .15s ease;
+    box-shadow: var(--bayang);
+  }
+  .comp.siap { background: var(--siap); font-size: 64px; }
+  .comp.menang { background: var(--menang); }
+  .comp.kalah { background: var(--kalah); }
+  @media (prefers-reduced-motion: no-preference) {
+    .comp.mikir { animation: goyang .25s ease-in-out 4; }
+    .comp.menang, .comp.kalah { animation: muncul .25s ease both; }
+  }
+  @keyframes goyang {
+    0%,100% { translate: 0 0; rotate: 0deg; }
+    25% { translate: 0 -14px; rotate: -8deg; }
+    75% { translate: 0 6px; rotate: 8deg; }
+  }
+  @keyframes muncul { from { scale: .85; } to { scale: 1; } }
+
+  /* 2. Adu penalti */
+  .lapangan {
+    position: relative; width: 100%; max-width: 340px; height: 250px;
+    border-radius: 18px; overflow: hidden;
+    background:
+      linear-gradient(180deg, #24324a 0 34%, transparent 34%),
+      repeating-linear-gradient(90deg, #3f9a52 0 34px, #46a65a 34px 68px);
+  }
+  .lapangan::before {   /* penonton */
+    content: ''; position: absolute; inset: 0 0 66% 0;
+    background: radial-gradient(circle, rgba(255,255,255,.35) 1.5px, transparent 2px) 0 0 / 12px 12px;
+  }
+  .gawang {
+    position: absolute; left: 50%; top: 46px; translate: -50% 0;
+    width: 240px; height: 112px;
+    border: 6px solid #fff; border-bottom: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.22) 0 1px, transparent 1px 12px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 1px, transparent 1px 12px),
+      rgba(10,20,30,.25);
+  }
+  .garis-gawang { position: absolute; left: 0; right: 0; top: 158px; height: 3px; background: rgba(255,255,255,.8); }
+  .titik-penalti { position: absolute; left: 50%; bottom: 26px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: rgba(255,255,255,.85); }
+  .kiper {
+    position: absolute; left: 50%; top: 84px; margin-left: -20px;
+    width: 40px; height: 72px;
+    transition: translate .35s ease-out, rotate .35s ease-out;
+  }
+  .kiper .kepala { position: absolute; left: 11px; top: 0; width: 18px; height: 18px; border-radius: 50%; background: #f1c27d; }
+  .kiper .badan { position: absolute; left: 6px; top: 18px; width: 28px; height: 34px; border-radius: 8px 8px 4px 4px; background: #f2b13b; }
+  .kiper .kaki { position: absolute; left: 9px; top: 50px; width: 22px; height: 22px; border-left: 8px solid #1c2530; border-right: 8px solid #1c2530; }
+  .kiper .sarung { position: absolute; top: 18px; width: 12px; height: 12px; border-radius: 4px; background: #fff; }
+  .kiper .sarung.ki { left: -6px; } .kiper .sarung.ka { right: -6px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .kiper.siaga { animation: siaga .5s ease-in-out 2; }
+  }
+  @keyframes siaga { 0%,100% { translate: 0 0; } 25% { translate: -10px 0; } 75% { translate: 10px 0; } }
+  .kiper.L { translate: -78px 6px; rotate: -70deg; }
+  .kiper.R { translate: 78px 6px; rotate: 70deg; }
+  .kiper.C { translate: 0 -14px; }
+  .bola-p {
+    position: absolute; left: 50%; bottom: 20px; margin-left: -17px;
+    width: 34px; height: 34px; font-size: 30px; line-height: 34px; text-align: center;
+    transition: translate .4s ease-out, scale .4s ease-out;
+  }
+  .bola-p.L { translate: -82px -140px; scale: .7; }
+  .bola-p.C { translate: 0 -150px; scale: .7; }
+  .bola-p.R { translate: 82px -140px; scale: .7; }
+  .bola-p.tahan { translate: var(--tx, 0) -105px; scale: .7; }
+  @media (prefers-reduced-motion: reduce) {
+    .kiper, .bola-p { transition-duration: .01s; }
+  }
+
+  /* 3. Tebak gelas */
+  .meja {
+    position: relative; width: 100%; max-width: 340px; height: 190px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #a9744b, #8a5a36);
+    box-shadow: inset 0 -10px 0 rgba(0,0,0,.12);
+  }
+  .slot-gls {
+    position: absolute; left: 0; bottom: 34px; width: 33.333%; height: 140px;
+    translate: calc(var(--slot) * 100%) 0;
+    display: flex; justify-content: center; align-items: flex-end;
+    cursor: pointer;
+    transition: translate .22s ease-in-out;
+  }
+  .gls {
+    width: 74px; height: 92px;
+    background: linear-gradient(90deg, #9c3f2c, #c8553d 40%, #9c3f2c);
+    clip-path: polygon(16% 0, 84% 0, 100% 100%, 0 100%);
+    border-radius: 6px 6px 0 0;
+    transition: translate .3s ease;
+  }
+  .gls.angkat { translate: 0 -54px; }
+  .bola-g {
+    position: absolute; left: 0; bottom: 36px; width: 33.333%;
+    translate: calc(var(--slot) * 100%) 0;
+    display: flex; justify-content: center;
+    pointer-events: none; opacity: 0;
+  }
+  .bola-g span { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #f2b13b 55%, #c98a17); }
+  .bola-g.tampak { opacity: 1; }
+  .label-slot { position: absolute; left: 0; right: 0; bottom: 8px; display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; font-weight: 800; font-size: 14px; color: #fff3e2; }
+  .label-slot .menang { color: #a6f0c6; } .label-slot .kalah { color: #ffc2bd; }
+  @media (prefers-reduced-motion: reduce) {
+    .slot-gls { transition: none; }
+    .meja.mengacak .slot-gls { opacity: .35; transition: opacity .3s; }
+    .gls { transition-duration: .01s; }
+  }
+
+  /* 4. Hompimpa */
+  .hom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 360px; }
+  .pemain { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .pemain .nm { font-size: 13px; font-weight: 700; color: var(--redup); }
+  .pemain.kamu .nm { color: var(--ink); }
+  .tangan {
+    width: 92px; height: 92px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; line-height: 1;
+    background: var(--tunggu); border: 3px solid transparent;
+    box-shadow: var(--bayang);
+    transition: background-color .15s ease, border-color .15s ease;
+  }
+  .tangan.W { background: #ffffff; border-color: #c9c4b6; }
+  .tangan.B { background: #1c2530; border-color: #1c2530; }
+  .tangan.beda { box-shadow: 0 0 0 5px var(--siap), var(--bayang); }
+  .pemain .warna { min-height: 20px; font-size: 13px; font-weight: 700; }
+  @media (prefers-reduced-motion: no-preference) {
+    .tangan.goyang { animation: hompim .3s ease-in-out 5; }
+    .pemain:nth-child(2) .tangan.goyang { animation-delay: .05s; }
+    .pemain:nth-child(3) .tangan.goyang { animation-delay: .1s; }
+    .tangan.W, .tangan.B { animation: muncul .25s ease both; }
+  }
+  @keyframes hompim { 0%,100% { translate: 0 0; } 50% { translate: 0 -18px; } }
+  @media (max-width: 380px) { .tangan { width: 78px; height: 78px; font-size: 40px; } }
+
+  /* Pertanyaan 1-5 */
+  fieldset.item { border: 0; padding: 0; margin: 0 0 22px; min-width: 0; }
+  fieldset.item legend { font-weight: 600; padding: 0; margin-bottom: 10px; }
+  fieldset.item.kurang legend { color: var(--salah); }
+  .skala5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .titik { position: relative; display: block; }
+  .titik input { position: absolute; opacity: 0; pointer-events: none; }
+  .titik .angka {
+    display: flex; align-items: center; justify-content: center;
+    min-block-size: 48px; border: 2px solid var(--garis); border-radius: 12px;
+    font-weight: 800; background: var(--bg); cursor: pointer;
+    transition: background-color .12s, border-color .12s;
+  }
+  .titik input:checked + .angka { background: var(--aksen); color: var(--on-aksen); border-color: var(--aksen); }
+  .titik input:focus-visible + .angka { outline: 3px solid var(--aksen); outline-offset: 2px; }
+  .ujung { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; color: var(--redup); margin-top: 5px; }
+  .ujung span:last-child { text-align: right; }
+  .legenda { background: var(--lembut); border-radius: 12px; padding: 10px 14px; font-size: .92rem; margin-bottom: 18px; }
+  .legenda ol { margin: 4px 0 0; padding-left: 20px; }
+
+  textarea.cadangan {
+    width: 100%; min-height: 110px; font: 12.5px/1.4 ui-monospace, Menlo, Consolas, monospace;
+    padding: 10px; border: 2px solid var(--garis); border-radius: 12px;
+    background: var(--bg); color: var(--ink);
+  }
+  [hidden] { display: none !important; }
+  noscript { display: block; padding: 20px; text-align: center; }
+
+  @media (max-width: 380px) {
+    body { font-size: 16px; }
+    h1 { font-size: 1.45rem; }
+    .comp { width: 136px; height: 136px; font-size: 64px; }
+    .opt { font-size: 36px; min-block-size: 92px; }
+    .gls { width: 64px; height: 82px; }
+  }
+</style>
+</head>
+<body>
+<header class="atas">
+  <div class="atas-isi">
+    <span id="judul-atas">Penelitian Pengalaman Bermain</span>
+    <button type="button" class="tombol-berhenti" id="btn-berhenti" hidden>Berhenti</button>
+  </div>
+  <div class="progres"><div id="bar"></div></div>
+</header>
+<noscript>Halaman ini membutuhkan JavaScript. Aktifkan JavaScript di browser, lalu muat ulang halaman.</noscript>
+<div id="pengumum" class="tersembunyi" aria-live="polite"></div>
+<main>
+
+  <div class="banner" id="banner"></div>
+
+  <!-- 1. PERSETUJUAN -->
+  <section class="langkah" id="consent">
+    <div class="hero" aria-hidden="true"><span>✊</span><span>⚽</span><span>🥤</span><span>🖐️</span></div>
+    <div class="kartu">
+      <h1 tabindex="-1">Halo, terima kasih sudah mau membantu</h1>
+      <p>Kami mahasiswa Psikologi UIN Sunan Kalijaga Yogyakarta. Kami ingin memahami apa yang dirasakan orang saat memainkan permainan sederhana.</p>
+      <h3>Sebelum mulai, mohon dibaca dulu</h3>
+      <ul class="poin">
+        <li><span class="ik" aria-hidden="true">🎮</span><span>Kamu akan memainkan <b id="jml-main">empat</b> permainan singkat melawan komputer, lalu menjawab beberapa pertanyaan tentang perasaanmu. Seluruhnya sekitar <b id="perkiraan-menit">15 sampai 20 menit</b>.</span></li>
+        <li><span class="ik" aria-hidden="true">🙋</span><span>Keikutsertaanmu <b>sukarela</b>. Kamu boleh berhenti kapan saja lewat tombol <b>Berhenti</b> di pojok kanan atas, tanpa akibat apa pun, termasuk pada nilaimu.</span></li>
+        <li><span class="ik" aria-hidden="true">💬</span><span>Tidak ada jawaban benar atau salah. Yang kami butuhkan hanya jawaban yang jujur.</span></li>
+        <li><span class="ik" aria-hidden="true">🔒</span><span>Nama hanya dipakai untuk daftar hadir. Nama disimpan <b>terpisah</b> dari jawabanmu, hanya dilihat tim peneliti, dan laporan penelitian hanya memakai kode.</span></li>
+        <li><span class="ik" aria-hidden="true">🧩</span><span>Ada bagian dari cara kerja permainan yang baru kami jelaskan <b>setelah sesi selesai</b>, supaya hasil penelitian tidak terpengaruh. Peneliti akan menjelaskannya secara langsung.</span></li>
+      </ul>
+      <p class="redup" id="kontak" hidden></p>
+      <label class="setuju">
+        <input type="checkbox" id="cek-setuju">
+        <span>Saya sudah membaca penjelasan di atas dan bersedia ikut dalam penelitian ini secara sukarela.</span>
+      </label>
+      <button type="button" class="tombol lebar" id="btn-consent" disabled>Lanjut</button>
+    </div>
+  </section>
+
+  <!-- 2. DATA DIRI -->
+  <section class="langkah" id="data">
+    <div class="kartu">
+      <h2 tabindex="-1">Kenalan dulu</h2>
+      <p class="redup">Data ini membantu kami mencatat kehadiran dengan rapi.</p>
+      <label class="isian" for="nama">Nama lengkap</label>
+      <input type="text" id="nama" autocomplete="name" maxlength="60" required aria-invalid="false">
+      <label class="isian" for="kelas">Kode kelas</label>
+      <p class="redup" id="kelas-hint" style="margin:0 0 6px">Tulis persis seperti yang disampaikan peneliti, misalnya XI-IPA-1.</p>
+      <input type="text" id="kelas" autocomplete="off" maxlength="30" required aria-invalid="false" aria-describedby="kelas-hint">
+      <label class="isian" for="usia">Usia (tahun)</label>
+      <input type="number" id="usia" inputmode="numeric" min="10" max="30" required aria-invalid="false">
+      <fieldset class="item" id="f-jk" style="margin:16px 0 0">
+        <legend style="font-weight:600">Jenis kelamin</legend>
+        <div class="dua">
+          <label class="pilih"><input type="radio" name="jk" value="L" required><span>Laki-laki</span></label>
+          <label class="pilih"><input type="radio" name="jk" value="P"><span>Perempuan</span></label>
+        </div>
+      </fieldset>
+      <div class="galat" id="err-data"></div>
+      <button type="button" class="tombol lebar" id="btn-data">Lanjut</button>
+    </div>
+  </section>
+
+  <!-- 3. CERITA (COVER STORY TUNGGAL) -->
+  <section class="langkah" id="cerita">
+    <div class="kartu">
+      <div class="hero" aria-hidden="true" style="font-size:40px"><span>🤖</span></div>
+      <h2 tabindex="-1" class="tengah">Tantangan Empat Permainan</h2>
+      <p>Kamu akan melawan komputer dalam empat permainan. Di setiap permainan, komputer punya <b>kebiasaan yang bisa ditebak</b>. Tugasmu adalah menemukan kebiasaan itu, lalu memanfaatkannya untuk <b>menang sebanyak mungkin</b>.</p>
+      <p>Setiap permainan diawali 2 ronde latihan, lalu <b><span class="n-ronde">10</span> ronde sungguhan</b>. Setelah setiap permainan ada dua pertanyaan singkat, lalu kamu boleh istirahat sebentar.</p>
+      <ol class="peta" id="peta-awal"></ol>
+      <p class="redup">Tidak ada batas waktu. Mainkan dengan tenang, sesuai kecepatanmu sendiri.</p>
+      <button type="button" class="tombol lebar" id="btn-cerita">Mulai permainan pertama</button>
+    </div>
+  </section>
+
+  <!-- 4. CARA BERMAIN -->
+  <section class="langkah" id="intro">
+    <div class="kartu">
+      <p class="redup" id="intro-ke" style="margin-bottom:4px"></p>
+      <h2 tabindex="-1" id="intro-judul"></h2>
+      <div id="intro-isi"></div>
+      <p class="catatan" id="intro-tugas"></p>
+      <button type="button" class="tombol lebar" id="btn-latihan">Mulai latihan</button>
+    </div>
+  </section>
+
+  <section class="langkah" id="siap">
+    <div class="kartu tengah">
+      <div class="hero" aria-hidden="true" style="font-size:40px"><span>🎯</span></div>
+      <h2 tabindex="-1">Latihan selesai</h2>
+      <p>Sekarang ronde sungguhan, sebanyak <b><span class="n-ronde">10</span> ronde</b>. Ingat, komputer punya kebiasaan yang bisa ditebak.</p>
+      <button type="button" class="tombol lebar" id="btn-mulai">Mulai ronde sungguhan</button>
+    </div>
+  </section>
+
+  <!-- 5. PERMAINAN -->
+  <section class="langkah" id="play">
+    <h2 class="tersembunyi" id="play-judul">Permainan</h2>
+    <div class="arena" id="arena">
+      <div class="bar-ronde"><span id="ronde">Ronde 1 dari 10</span><span class="tag" id="tag-main"></span></div>
+      <div class="jalur"><div id="isi-jalur"></div></div>
+      <div class="panggung">
+        <div id="panggung-isi"></div>
+        <div id="status"></div>
+      </div>
+      <div class="opsi" id="opsi"></div>
+      <p class="redup kunci" id="petunjuk-kunci"></p>
+    </div>
+  </section>
+
+  <!-- 6. DUA PERTANYAAN SETELAH SETIAP PERMAINAN -->
+  <section class="langkah" id="cek">
+    <div class="kartu">
+      <h2 tabindex="-1" id="cek-judul">Dua pertanyaan singkat</h2>
+      <p class="redup">Pikirkan permainan yang baru saja selesai. Tidak ada jawaban benar atau salah.</p>
+      <div id="daftar-cek"></div>
+      <div class="galat" id="err-cek"></div>
+      <button type="button" class="tombol lebar" id="btn-cek">Simpan dan lanjut</button>
+    </div>
+  </section>
+
+  <!-- 7. JEDA DAN PETA -->
+  <section class="langkah" id="jeda">
+    <div class="kartu">
+      <div class="hero" aria-hidden="true" style="font-size:40px"><span>🌿</span></div>
+      <h2 tabindex="-1" class="tengah" id="jeda-judul">Satu permainan selesai</h2>
+      <p class="tengah">Jawabanmu sudah dicatat. Silakan istirahat sebentar: tarik napas, regangkan tangan, lalu lanjut kalau sudah siap.</p>
+      <ol class="peta" id="peta-jeda"></ol>
+      <button type="button" class="tombol lebar" id="btn-jeda">Saya siap lanjut</button>
+    </div>
+  </section>
+
+  <!-- 8. TBS-STATE (SEKALI DI AKHIR) -->
+  <section class="langkah" id="tbs">
+    <div class="kartu">
+      <h2 tabindex="-1">Semua permainan selesai 🎉</h2>
+      <p>Sekarang pikirkan <b>seluruh permainan tadi</b>. Seberapa benar setiap pernyataan berikut menggambarkan dirimu selama bermain?</p>
+      <div class="legenda">
+        <ol>
+          <li>Sama sekali tidak benar</li>
+          <li>Sedikit benar</li>
+          <li>Sebagian benar</li>
+          <li>Sebagian besar benar</li>
+          <li>Sepenuhnya benar</li>
+        </ol>
+      </div>
+      <div id="daftar-tbs"></div>
+      <div class="galat" id="err-tbs"></div>
+      <button type="button" class="tombol lebar" id="btn-tbs">Lanjut</button>
+    </div>
+  </section>
+
+  <!-- 9. PERTANYAAN PENUTUP -->
+  <section class="langkah" id="tanya">
+    <div class="kartu">
+      <h2 tabindex="-1">Pertanyaan terakhir</h2>
+      <p class="redup">Masih tentang seluruh permainan tadi.</p>
+      <div id="daftar-penutup"></div>
+      <label class="isian" for="t-tujuan">Menurutmu, apa yang sedang diteliti dalam penelitian ini?</label>
+      <textarea class="jawab" id="t-tujuan" maxlength="500" placeholder="Tulis dugaanmu, boleh singkat."></textarea>
+      <fieldset class="item" id="f-janggal" style="margin:18px 0 0">
+        <legend>Apakah ada hal yang terasa janggal selama bermain?</legend>
+        <div class="dua">
+          <label class="pilih"><input type="radio" name="janggal" value="ya"><span>Ya</span></label>
+          <label class="pilih"><input type="radio" name="janggal" value="tidak"><span>Tidak</span></label>
+        </div>
+      </fieldset>
+      <div id="wadah-janggal" hidden>
+        <label class="isian" for="t-janggal">Apa yang terasa janggal?</label>
+        <textarea class="jawab" id="t-janggal" maxlength="500"></textarea>
+      </div>
+      <div class="galat" id="err-tanya"></div>
+      <button type="button" class="tombol lebar" id="btn-tanya">Kirim jawaban</button>
+      <div id="kotak-cadangan" hidden style="margin-top:16px">
+        <p class="redup">Kalau pengiriman tetap gagal, tekan Salin data, lalu tunjukkan layar ini ke peneliti.</p>
+        <label class="tersembunyi" for="teks-cadangan">Data cadangan</label>
+        <textarea class="cadangan" id="teks-cadangan" readonly></textarea>
+        <button type="button" class="tombol sekunder" id="btn-salin">Salin data</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. SELESAI -->
+  <section class="langkah" id="end">
+    <div class="kartu tengah">
+      <div class="hero" aria-hidden="true" style="font-size:40px"><span>🏁</span></div>
+      <h1 tabindex="-1">Terima kasih banyak!</h1>
+      <p>Semua jawabanmu sudah tersimpan. Bantuanmu sangat berarti bagi penelitian kami.</p>
+      <p>Apa pun hasil permainanmu tadi, itu <b>tidak menggambarkan kemampuan atau kecerdasanmu</b>. Peneliti akan menjelaskan alasannya setelah semua teman selesai.</p>
+      <p class="redup" id="kontak-akhir" hidden></p>
+      <p class="redup">Mohon tunggu di tempat dan jangan ceritakan isi permainan kepada teman yang belum ikut, supaya penelitian tetap adil. Halaman ini boleh ditutup.</p>
+    </div>
+  </section>
+
+  <!-- BERHENTI -->
+  <section class="langkah" id="stop">
+    <div class="kartu tengah">
+      <h2 tabindex="-1">Ingin berhenti?</h2>
+      <p>Tidak apa-apa, kamu tidak wajib menyelesaikan penelitian ini. Kalau berhenti, data yang sudah kamu isi tidak akan kami pakai.</p>
+      <button type="button" class="tombol lebar" id="btn-stop-ya">Ya, saya berhenti</button>
+      <button type="button" class="tombol lebar sekunder" id="btn-stop-tidak">Tidak jadi, lanjutkan</button>
+    </div>
+  </section>
+
+  <section class="langkah" id="berhenti">
+    <div class="kartu tengah">
+      <div class="hero" aria-hidden="true" style="font-size:40px"><span>🤝</span></div>
+      <h2 tabindex="-1">Terima kasih sudah mencoba</h2>
+      <p>Kamu sudah berhenti dan datamu tidak akan dipakai dalam penelitian. Tidak ada akibat apa pun untukmu.</p>
+      <p class="redup">Silakan tunggu di tempat dengan tenang. Kalau ada yang ingin ditanyakan, sampaikan saja ke peneliti.</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     PENGATURAN
+     ============================================================ */
+  var CONFIG = {
+    // URL Web App Google Apps Script (berakhiran /exec).
+    // Kalau dikosongkan, aplikasi berjalan dalam MODE UJI COBA (data tidak tersimpan).
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbykZ3ULwTzBwhbtSoUjf1CT5tS2JKZXjSWZGUiP5ZW7YfEtGtTCZdj4PUwgaSROzAWW1w/exec',
+    // Opsional: kontak peneliti, tampil di halaman persetujuan dan halaman akhir.
+    KONTAK_PENELITI: '',
+    // Jumlah ronde sungguhan per permainan. Struk et al. (2021) memakai 20 untuk satu permainan.
+    RONDE: 10,
+    // 'semua' = setiap peserta memainkan keempat permainan dengan urutan Latin square.
+    // 'satu'  = setiap peserta hanya memainkan satu permainan (permainan pertama dari urutannya).
+    DESAIN: 'semua'
+  };
+
+  var RONDE = CONFIG.RONDE;
+  var LATIHAN = 2;        // satu menang dan satu kalah, urutannya diacak per permainan, sama untuk semua kondisi
+  var TAMPIL_MS = 1300;   // lama hasil ditampilkan, sama di semua permainan
+  var KONDISI = ['menang', 'kalah', 'sedang'];
+  /* Balanced Latin square 4 x 4: setiap permainan muncul sekali di setiap posisi,
+     dan setiap permainan didahului permainan lain yang berbeda-beda.
+     Harus sama dengan PERMUTASI di Code.gs. */
+  var PERMUTASI = [
+    ['suit', 'penalti', 'hompimpa', 'gelas'],
+    ['penalti', 'gelas', 'suit', 'hompimpa'],
+    ['gelas', 'hompimpa', 'penalti', 'suit'],
+    ['hompimpa', 'suit', 'gelas', 'penalti']
+  ];
+
+  /* Butir tunggal per permainan (Goetz et al., 2023: butir tunggal, skala 1-5,
+     hanya angka 1 dan 5 yang diberi label). */
+  var CEK = [
+    { k: 'bosan', teks: 'Seberapa kuat kamu merasa bosan saat memainkan {nama} tadi?', ki: 'Sama sekali tidak', ka: 'Sangat kuat' },
+    { k: 'kontrol', teks: 'Seberapa besar kamu merasa pilihanmu menentukan hasil permainan {nama} tadi?', ki: 'Sama sekali tidak', ka: 'Sangat besar' }
+  ];
+
+  /* TBS-State (Goetz et al., 2023, Tabel A2), diisi sekali di akhir dengan instruksi
+     "pikirkan seluruh permainan tadi". a = afektif, c = kognitif, m = motivasional, p = fisiologis. */
+  var TBS = [
+    { kom: 'a', teks: 'Saya merasa bosan.' },
+    { kom: 'a', teks: 'Permainan terasa monoton dan membosankan bagi saya.' },
+    { kom: 'a', teks: 'Permainan itu benar-benar membuat saya bosan setengah mati.' },
+    { kom: 'c', teks: 'Aku begitu bosan hingga tanpa sadar aku melamun.' },
+    { kom: 'c', teks: 'Pikiranku melayang saat melakukan permainan.' },
+    { kom: 'c', teks: 'Saya tidak bisa fokus pada permainan karena saya sangat bosan.' },
+    { kom: 'm', teks: 'Saya lebih suka tidak bermain permainan karena bosan.' },
+    { kom: 'm', teks: 'Saya terus-menerus melihat jam saya karena waktu berjalan lambat.' },
+    { kom: 'm', teks: 'Saya ingin berhenti bermain karena bosan.' },
+    { kom: 'p', teks: 'Saya menguap karena sangat bosan.' },
+    { kom: 'p', teks: 'Aku sangat bosan sampai merasa lelah.' },
+    { kom: 'p', teks: 'Aku hampir tidak bisa tetap terjaga karena kebosanan.' }
+  ];
+
+  var PENUTUP = [
+    { k: 'kesal', teks: 'Seberapa kesal kamu selama bermain tadi?', ki: 'Sama sekali tidak', ka: 'Sangat kesal' },
+    { k: 'tantangan', teks: 'Seberapa menantang permainan-permainan tadi?', ki: 'Sama sekali tidak', ka: 'Sangat menantang' },
+    { k: 'penting', teks: 'Seberapa penting bagimu untuk menang?', ki: 'Sama sekali tidak', ka: 'Sangat penting' }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var acak = function (a, b) { return a + Math.floor(Math.random() * (b - a + 1)); };
+  var KIRI_TENGAH_KANAN = ['L', 'C', 'R'];
+  var NAMA_ARAH = { L: 'Kiri', C: 'Tengah', R: 'Kanan' };
+
+  /* ============================================================
+     URUTAN HASIL KONDISI SEDANG
+     Dikunci per permainan dan sama untuk semua peserta: tepat separuh menang,
+     paling banyak 3 hasil sama berturut-turut. Dibangkitkan dari "seed" tetap
+     sehingga mengubah jumlah ronde tetap menghasilkan pola yang konsisten.
+     ============================================================ */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function seedDari(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function buatPola(nama, n) {
+    var r = mulberry32(seedDari(nama + ':' + n)), menang = Math.floor(n / 2), i;
+    for (var c = 0; c < 5000; c++) {
+      var a = [];
+      for (i = 0; i < n; i++) a.push(i < menang ? 1 : 0);
+      for (i = n - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
+      var run = 1, ok = true;
+      for (i = 1; i < n; i++) { run = a[i] === a[i - 1] ? run + 1 : 1; if (run > 3) { ok = false; break; } }
+      if (ok) return a.join('');
+    }
+    var s = ''; for (i = 0; i < n; i++) s += (i % 2 ? '0' : '1'); return s;
+  }
+
+  /* ============================================================
+     DEFINISI PERMAINAN
+     Setiap permainan punya: nama, ikon, tema latar, cara bermain, pilihan,
+     fase menunggu (sebelum peserta memilih), dan cara menampilkan hasil.
+     Hasil menang/kalah SELALU ditentukan oleh kondisi, bukan oleh pilihan peserta.
+     ============================================================ */
+  var GAME = {};
+
+  /* ---------- 1. Batu-gunting-kertas ---------- */
+  (function () {
+    var ICON = { R: '✊', P: '✋', S: '✌️' };
+    var BEATS = { R: 'S', P: 'R', S: 'P' };
+    var LAWAN = { R: 'P', P: 'S', S: 'R' };
+    var putar = null;
+    GAME.suit = {
+      nama: 'Batu-Gunting-Kertas', ikon: '✊', tema: 'tema-suit',
+      intro:
+        '<ol class="langkah-main">' +
+        '<li><span>Komputer memilih batu, kertas, atau gunting.</span></li>' +
+        '<li><span>Kamu juga memilih salah satu. Pilihan komputer baru terlihat setelah kamu menekan tombol.</span></li>' +
+        '<li><span>Hasilnya langsung tampil: kamu menang atau kalah.</span></li></ol>' +
+        '<div class="aturan" aria-label="Aturan">' +
+        '<div><span aria-hidden="true">✊ ➜ ✌️</span><small>batu mengalahkan gunting</small></div>' +
+        '<div><span aria-hidden="true">✌️ ➜ ✋</span><small>gunting mengalahkan kertas</small></div>' +
+        '<div><span aria-hidden="true">✋ ➜ ✊</span><small>kertas mengalahkan batu</small></div></div>',
+      tugas: 'Komputer punya kebiasaan dalam memilih. Temukan kebiasaannya dan menangkan sebanyak mungkin.',
+      opsi: [
+        { k: 'R', ikon: '✊', label: 'Batu', tombol: 'b' },
+        { k: 'P', ikon: '✋', label: 'Kertas', tombol: 'k' },
+        { k: 'S', ikon: '✌️', label: 'Gunting', tombol: 'g' }
+      ],
+      petunjuk: 'Di laptop, kamu juga bisa menekan B (batu), K (kertas), atau G (gunting).',
+      siapkan: function (w) {
+        w.innerHTML = '<div class="tengah"><div class="nama-lawan" style="margin-bottom:8px">Komputer</div><div class="comp" id="comp" aria-hidden="true">✊</div></div>';
+      },
+      tunggu: function (selesai) {
+        var c = $('comp'), urut = ['✊', '✋', '✌️'], i = 0;
+        c.className = 'comp mikir'; c.textContent = '✊';
+        $('status').textContent = 'Komputer sedang memilih…';
+        putar = setInterval(function () { i = (i + 1 + Math.floor(Math.random() * 2)) % 3; c.textContent = urut[i]; }, 90);
+        return [setTimeout(function () {
+          clearInterval(putar);
+          c.className = 'comp siap'; c.textContent = '?';
+          selesai();
+        }, 1000)];
+      },
+      batal: function () { clearInterval(putar); },
+      tampilkan: function (p, menang) {
+        var c = menang ? BEATS[p] : LAWAN[p];
+        var el = $('comp'); el.className = 'comp ' + (menang ? 'menang' : 'kalah'); el.textContent = ICON[c];
+        return { comp: c, teks: 'Komputer memilih ' + { R: 'batu', P: 'kertas', S: 'gunting' }[c] + '.' };
+      }
+    };
+  })();
+
+  /* ---------- 2. Adu penalti ---------- */
+  (function () {
+    GAME.penalti = {
+      nama: 'Adu Penalti', ikon: '⚽', tema: 'tema-penalti',
+      intro:
+        '<ol class="langkah-main">' +
+        '<li><span>Kamu menjadi penendang, komputer menjadi kiper.</span></li>' +
+        '<li><span>Pilih arah tendangan: <b>kiri</b>, <b>tengah</b>, atau <b>kanan</b>. Kiper menebak arah tendanganmu.</span></li>' +
+        '<li><span>Kalau bola masuk gawang, kamu menang. Kalau ditangkap kiper, kamu kalah.</span></li></ol>',
+      tugas: 'Kiper komputer punya kebiasaan dalam menebak arah. Temukan kebiasaannya dan cetak gol sebanyak mungkin.',
+      opsi: [
+        { k: 'L', ikon: '⬅️', label: 'Kiri', tombol: 'arrowleft' },
+        { k: 'C', ikon: '⬆️', label: 'Tengah', tombol: 'arrowup' },
+        { k: 'R', ikon: '➡️', label: 'Kanan', tombol: 'arrowright' }
+      ],
+      petunjuk: 'Di laptop, kamu juga bisa menekan tombol panah kiri, atas, atau kanan.',
+      siapkan: function (w) {
+        w.innerHTML =
+          '<div class="lapangan" aria-hidden="true">' +
+          '<div class="gawang"></div><div class="garis-gawang"></div><div class="titik-penalti"></div>' +
+          '<div class="kiper" id="kiper"><div class="kepala"></div><div class="badan"></div><div class="kaki"></div>' +
+          '<div class="sarung ki"></div><div class="sarung ka"></div></div>' +
+          '<div class="bola-p" id="bola-p">⚽</div></div>';
+      },
+      tunggu: function (selesai) {
+        var k = $('kiper'), b = $('bola-p');
+        k.className = 'kiper'; b.className = 'bola-p'; b.style.removeProperty('--tx');
+        void k.offsetWidth;
+        k.className = 'kiper siaga';
+        $('status').textContent = 'Kiper bersiap…';
+        return [setTimeout(function () { k.className = 'kiper'; selesai(); }, 1000)];
+      },
+      tampilkan: function (p, menang) {
+        var lain = KIRI_TENGAH_KANAN.filter(function (x) { return x !== p; });
+        var arahKiper = menang ? lain[acak(0, 1)] : p;
+        var geser = { L: '-78px', C: '0px', R: '78px' };
+        var k = $('kiper'), b = $('bola-p');
+        k.className = 'kiper ' + arahKiper;
+        if (menang) b.className = 'bola-p ' + p;
+        else { b.style.setProperty('--tx', geser[p]); b.className = 'bola-p tahan'; }
+        return {
+          comp: arahKiper,
+          teks: menang ? 'Gol! Kiper melompat ke ' + NAMA_ARAH[arahKiper].toLowerCase() + '.' : 'Ditangkap kiper.'
+        };
+      }
+    };
+  })();
+
+  /* ---------- 3. Tebak gelas ---------- */
+  (function () {
+    var urutCup = [0, 1, 2];   // urutCup[i] = slot gelas ke-i
+    var cupBola = 0, awal = 0, timers = [];
+    function slotKe(i) { return urutCup[i]; }
+    function cupDiSlot(s) { return urutCup.indexOf(s); }
+    function pasangSlot() {
+      for (var i = 0; i < 3; i++) $('cup-' + i).style.setProperty('--slot', urutCup[i]);
+    }
+    GAME.gelas = {
+      nama: 'Tebak Gelas', ikon: '🥤', tema: 'tema-gelas',
+      intro:
+        '<ol class="langkah-main">' +
+        '<li><span>Komputer menunjukkan bola di bawah salah satu dari tiga gelas.</span></li>' +
+        '<li><span>Gelas ditutup, lalu diacak dengan cepat selama 2 detik.</span></li>' +
+        '<li><span>Tebak bola ada di gelas <b>kiri</b>, <b>tengah</b>, atau <b>kanan</b>. Gelas diangkat dan hasilnya langsung tampil.</span></li></ol>',
+      tugas: 'Cara komputer mengacak gelas punya kebiasaan tertentu. Temukan kebiasaannya dan tebak dengan benar sebanyak mungkin.',
+      opsi: [
+        { k: 'L', ikon: '⬅️', label: 'Kiri', tombol: 'arrowleft' },
+        { k: 'C', ikon: '⬆️', label: 'Tengah', tombol: 'arrowup' },
+        { k: 'R', ikon: '➡️', label: 'Kanan', tombol: 'arrowright' }
+      ],
+      petunjuk: 'Kamu bisa mengetuk gelasnya langsung. Di laptop, kamu juga bisa menekan tombol panah kiri, atas, atau kanan.',
+      siapkan: function (w) {
+        var h = '<div class="meja" id="meja" aria-hidden="true"><div class="bola-g" id="bola-g"><span></span></div>';
+        for (var i = 0; i < 3; i++) h += '<div class="slot-gls" id="cup-' + i + '" data-cup="' + i + '"><div class="gls" id="gls-' + i + '"></div></div>';
+        h += '<div class="label-slot"><span id="lbl-0">Kiri</span><span id="lbl-1">Tengah</span><span id="lbl-2">Kanan</span></div></div>';
+        w.innerHTML = h;
+        urutCup = [0, 1, 2]; pasangSlot();
+        Array.prototype.forEach.call(w.querySelectorAll('.slot-gls'), function (el) {
+          el.addEventListener('click', function () {
+            var slot = urutCup[parseInt(el.getAttribute('data-cup'), 10)];
+            var b = document.querySelector('.opt[data-k="' + KIRI_TENGAH_KANAN[slot] + '"]');
+            if (b && !b.disabled) pilihPemain(b);
+          });
+        });
+      },
+      tunggu: function (selesai) {
+        var meja = $('meja'), bola = $('bola-g'), i;
+        for (i = 0; i < 3; i++) { $('gls-' + i).className = 'gls'; $('lbl-' + i).className = ''; }
+        bola.className = 'bola-g';
+        // 1) Tunjukkan bola (0,9 detik)
+        awal = acak(0, 2); cupBola = cupDiSlot(awal);
+        bola.style.setProperty('--slot', awal);
+        $('gls-' + cupBola).className = 'gls angkat';
+        bola.className = 'bola-g tampak';
+        $('status').textContent = 'Perhatikan bolanya…';
+        timers = [];
+        // 2) Tutup gelas (0,3 detik)
+        timers.push(setTimeout(function () { $('gls-' + cupBola).className = 'gls'; }, 900));
+        timers.push(setTimeout(function () {
+          bola.className = 'bola-g';
+          meja.classList.add('mengacak');
+          $('status').textContent = 'Gelas sedang diacak…';
+        }, 1200));
+        // 3) Acak cepat selama 2 detik: 8 pertukaran, masing-masing 250 ms
+        for (var s = 0; s < 8; s++) {
+          timers.push(setTimeout(function () {
+            var a = acak(0, 2), b = (a + acak(1, 2)) % 3;
+            var ca = cupDiSlot(a), cb = cupDiSlot(b);
+            urutCup[ca] = b; urutCup[cb] = a; pasangSlot();
+          }, 1200 + s * 250));
+        }
+        // 4) Giliran peserta
+        timers.push(setTimeout(function () { meja.classList.remove('mengacak'); selesai(); }, 3200));
+        return timers;
+      },
+      batal: function () { var m = $('meja'); if (m) m.classList.remove('mengacak'); },
+      tampilkan: function (p, menang) {
+        var pilih = KIRI_TENGAH_KANAN.indexOf(p);
+        var sejati = slotKe(cupBola);   // posisi bola bila dilacak dari animasi
+        var bolaSlot = pilih;
+        if (!menang) { var lain = [0, 1, 2].filter(function (x) { return x !== pilih; }); bolaSlot = lain[acak(0, 1)]; }
+        var bola = $('bola-g');
+        bola.style.setProperty('--slot', bolaSlot);
+        bola.className = 'bola-g tampak';
+        $('gls-' + cupDiSlot(pilih)).className = 'gls angkat';
+        $('gls-' + cupDiSlot(bolaSlot)).className = 'gls angkat';
+        $('lbl-' + pilih).className = menang ? 'menang' : 'kalah';
+        return {
+          comp: KIRI_TENGAH_KANAN[awal] + '>' + KIRI_TENGAH_KANAN[sejati] + '>' + KIRI_TENGAH_KANAN[bolaSlot],
+          teks: 'Bola ada di gelas ' + NAMA_ARAH[KIRI_TENGAH_KANAN[bolaSlot]].toLowerCase() + '.'
+        };
+      }
+    };
+  })();
+
+  /* ---------- 4. Hompimpa ---------- */
+  (function () {
+    var WARNA = { W: 'Putih', B: 'Hitam' };
+    var IKON = { W: '🖐️', B: '🤚' };
+    GAME.hompimpa = {
+      nama: 'Hompimpa', ikon: '🖐️', tema: 'tema-hompimpa',
+      intro:
+        '<ol class="langkah-main">' +
+        '<li><span>Kamu bermain bersama dua pemain komputer, Komputer A dan Komputer B.</span></li>' +
+        '<li><span>Ketiga tangan diayun bersama sambil berseru "hom-pim-pa". Setelah tangan berhenti, pilih <b>putih</b> (telapak tangan) atau <b>hitam</b> (punggung tangan).</span></li>' +
+        '<li><span>Tangan dibuka bersamaan. Kamu menang kalau tanganmu <b>berbeda sendiri</b>. Kalau ketiganya sama, atau yang berbeda sendiri adalah komputer, kamu kalah.</span></li></ol>' +
+        '<div class="aturan" aria-label="Contoh">' +
+        '<div><span aria-hidden="true">⚪ ⚫ ⚪</span><small>kamu (tengah) berbeda sendiri: menang</small></div>' +
+        '<div><span aria-hidden="true">⚫ ⚫ ⚪</span><small>Komputer B berbeda sendiri: kalah</small></div>' +
+        '<div><span aria-hidden="true">⚪ ⚪ ⚪</span><small>semua sama: kalah</small></div></div>',
+      tugas: 'Dua pemain komputer punya kebiasaan dalam memilih putih atau hitam. Temukan kebiasaan mereka dan usahakan tanganmu berbeda sendiri sebanyak mungkin.',
+      opsi: [
+        { k: 'W', ikon: '🖐️', label: 'Putih (telapak)', tombol: 'p' },
+        { k: 'B', ikon: '🤚', label: 'Hitam (punggung)', tombol: 'h' }
+      ],
+      petunjuk: 'Di laptop, kamu juga bisa menekan P (putih) atau H (hitam).',
+      siapkan: function (w) {
+        var h = '<div class="hom" aria-hidden="true">';
+        [['a', 'Komputer A'], ['k', 'Kamu'], ['b', 'Komputer B']].forEach(function (x) {
+          h += '<div class="pemain' + (x[0] === 'k' ? ' kamu' : '') + '"><span class="nm">' + x[1] + '</span>' +
+            '<div class="tangan" id="tg-' + x[0] + '">✊</div><span class="warna" id="wr-' + x[0] + '"></span></div>';
+        });
+        w.innerHTML = h + '</div>';
+      },
+      tunggu: function (selesai) {
+        var ids = ['a', 'k', 'b'];
+        ids.forEach(function (i) {
+          var t = $('tg-' + i); t.className = 'tangan'; t.textContent = '✊'; $('wr-' + i).textContent = '';
+          void t.offsetWidth; t.className = 'tangan goyang';
+        });
+        $('status').textContent = 'Hom…';
+        var tm = [];
+        tm.push(setTimeout(function () { $('status').textContent = 'Hom… pim…'; }, 500));
+        tm.push(setTimeout(function () { $('status').textContent = 'Hom… pim… pa!'; }, 1000));
+        tm.push(setTimeout(function () {
+          ids.forEach(function (i) { $('tg-' + i).className = 'tangan'; });
+          selesai();
+        }, 1600));
+        return tm;
+      },
+      tampilkan: function (p, menang) {
+        var o = p === 'W' ? 'B' : 'W', a, b;
+        if (menang) { a = o; b = o; }
+        else {
+          /* Tiga susunan kalah dengan peluang sama, sesuai peluang alaminya:
+             semua sama, Komputer A berbeda sendiri, atau Komputer B berbeda sendiri. */
+          var pil = [[p, p], [o, p], [p, o]][acak(0, 2)]; a = pil[0]; b = pil[1];
+        }
+        var isi = { a: a, k: p, b: b };
+        var beda = menang ? 'k' : (a !== b ? (a !== p ? 'a' : 'b') : null);
+        Object.keys(isi).forEach(function (i) {
+          var t = $('tg-' + i);
+          t.className = 'tangan ' + isi[i] + (beda === i ? ' beda' : '');
+          t.textContent = IKON[isi[i]];
+          $('wr-' + i).textContent = WARNA[isi[i]];
+        });
+        var teks = menang ? 'Tanganmu berbeda sendiri.'
+          : (beda ? 'Komputer ' + beda.toUpperCase() + ' berbeda sendiri.' : 'Ketiga tangan sama.');
+        return { comp: a + b, teks: teks };
+      }
+    };
+  })();
+
+  /* ============================================================
+     MODE DAN STATUS
+     ============================================================ */
+  var demo = /^#demo-(menang|kalah|sedang)$/.exec(location.hash || '');
+  var DEMO = demo ? demo[1] : null;
+  var mode = DEMO ? 'demo' : (CONFIG.APPS_SCRIPT_URL ? 'server' : 'uji');
+
+  var state = {
+    id: null, kondisi: null, urutan: null, kelas: '',
+    daftarMain: [], ke: 0, pola: {},
+    fase: 'latihan', t: 0, log: [], busy: true, tReady: 0, gen: 0, timers: [],
+    mulaiMain: 0, selesaiMain: 0, inGame: false, latihanMenang: 0,
+    halamanSebelumStop: null, terkirimAkhir: false
+  };
+  var game = function () { return GAME[state.daftarMain[state.ke]]; };
+
+  function progres(id) {
+    var n = state.daftarMain.length || 1, porsi = 70 / n, dasar = 12 + porsi * state.ke;
+    var tetap = { consent: 3, data: 7, cerita: 12, tbs: 86, tanya: 94, end: 100 };
+    var dalam = { intro: 0.05, siap: 0.15, play: 0.15, cek: 0.85, jeda: 0 };
+    if (id in tetap) return tetap[id];
+    if (id in dalam) return dasar + porsi * dalam[id];
+    return null;
+  }
+  function setBar(p) { if (p !== null) $('bar').style.width = p + '%'; }
+
+  function show(id) {
+    var semua = document.querySelectorAll('.langkah');
+    for (var i = 0; i < semua.length; i++) semua[i].classList.remove('aktif');
+    var sec = $(id);
+    sec.classList.add('aktif');
+    setBar(progres(id));
+    $('btn-berhenti').hidden = ['data', 'cerita', 'intro', 'siap', 'play', 'cek', 'jeda', 'tbs', 'tanya'].indexOf(id) < 0;
+    if (state.daftarMain.length && ['intro', 'siap', 'play', 'cek'].indexOf(id) >= 0) {
+      $('judul-atas').textContent = 'Permainan ' + (state.ke + 1) + ' dari ' + state.daftarMain.length + ' · ' + game().nama;
+    } else {
+      $('judul-atas').textContent = 'Penelitian Pengalaman Bermain';
+    }
+    window.scrollTo(0, 0);
+    // Pindahkan fokus ke judul langkah baru agar pembaca layar ikut berpindah.
+    var h = sec.querySelector('[tabindex="-1"]');
+    if (h) h.focus({ preventScroll: true });
+  }
+  function pesan(id, teks) {
+    var el = $(id);
+    el.textContent = teks || '';
+    el.style.display = teks ? 'block' : 'none';
+  }
+  var timerUmum = null;
+  function umumkan(teks) {
+    clearTimeout(timerUmum);
+    $('pengumum').textContent = '';
+    timerUmum = setTimeout(function () { $('pengumum').textContent = teks; }, 50);
+  }
+
+  /* ============================================================
+     KOMUNIKASI DENGAN GOOGLE APPS SCRIPT
+     ============================================================ */
+  function kirim(obj) {
+    if (mode !== 'server') {
+      if (window.console) console.log('MODE ' + mode.toUpperCase() + ', data:', obj);
+      return Promise.resolve({ ok: true });
+    }
+    var ctrl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 25000);
+    return fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(obj),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) { return r.json(); })
+      .then(function (h) { clearTimeout(timer); return h; },
+            function (e) { clearTimeout(timer); throw e; });
+  }
+
+  /* Antrean pengiriman di latar belakang: peserta tidak tertahan oleh sinyal,
+     dan antrean disimpan di perangkat supaya tidak hilang. */
+  var antrean = [], sedangKirim = false, timerUlang = null, penunggu = [];
+  function kunciSimpan() { return 'antrean:' + (state.id || 'x'); }
+  function simpanAntrean() { try { localStorage.setItem(kunciSimpan(), JSON.stringify(antrean)); } catch (e) { /* abaikan */ } }
+  function antre(obj) { antrean.push(obj); simpanAntrean(); proses(); }
+  function lapor(ok) { var w = penunggu; penunggu = []; w.forEach(function (f) { f(ok); }); }
+  function proses() {
+    if (sedangKirim) return;
+    if (!antrean.length) return lapor(true);
+    sedangKirim = true;
+    kirim(antrean[0]).then(function (r) {
+      if (!r || !r.ok) throw new Error('gagal');
+      antrean.shift(); simpanAntrean();
+      sedangKirim = false; proses();
+    }).catch(function () {
+      sedangKirim = false; lapor(false);
+      clearTimeout(timerUlang); timerUlang = setTimeout(proses, 6000);
+    });
+  }
+  function tungguTerkirim() {
+    return new Promise(function (res) {
+      if (!antrean.length && !sedangKirim) return res(true);
+      penunggu.push(res); clearTimeout(timerUlang); proses();
+    });
+  }
+
+  /* Pengacakan lokal (hanya mode uji coba) */
+  function acakLokal(kelas) {
+    var kunci = 'uji:' + kelas.toLowerCase(), daftar = [];
+    try { daftar = JSON.parse(localStorage.getItem(kunci) || '[]'); } catch (e) { daftar = []; }
+    var n = daftar.length, p = n % 3;
+    var dipakai = p ? daftar.slice(n - p) : [];
+    var sisa = KONDISI.filter(function (k) { return dipakai.indexOf(k) < 0; });
+    var pilih = sisa[Math.floor(Math.random() * sisa.length)];
+    daftar.push(pilih);
+    try { localStorage.setItem(kunci, JSON.stringify(daftar)); } catch (e) { /* abaikan */ }
+    return { id: 'UJI' + String(n + 1).padStart(3, '0'), kondisi: pilih, urutan: n + 1 };
+  }
+
+  /* Urutan permainan: dari server bila ada; kalau tidak, dihitung dari nomor urut.
+     Tiap blok 3 peserta (satu per kondisi) mendapat urutan yang sama, dan urutan
+     berganti antarblok mengikuti Latin square, sehingga kondisi x urutan seimbang
+     setiap 12 peserta. */
+  function tentukanUrutan(h) {
+    var u = h.urutanPermainan;
+    if (typeof u === 'string') u = u.split('-');
+    var valid = Array.isArray(u) && u.length === PERMUTASI[0].length && u.every(function (g) { return GAME[g]; });
+    if (!valid) {
+      var no = parseInt(h.urutan, 10);
+      u = no > 0 ? PERMUTASI[Math.floor((no - 1) / 3) % PERMUTASI.length] : PERMUTASI[acak(0, PERMUTASI.length - 1)];
+    }
+    return CONFIG.DESAIN === 'satu' ? u.slice(0, 1) : u.slice();
+  }
+
+  /* ============================================================
+     PERTANYAAN SKALA 1-5 (dipakai untuk cek per permainan, TBS, dan penutup)
+     ============================================================ */
+  function buatButir(wadah, nama, teks, ki, ka) {
+    var fs = document.createElement('fieldset');
+    fs.className = 'item'; fs.id = 'f-' + nama;
+    var lg = document.createElement('legend'); lg.textContent = teks; fs.appendChild(lg);
+    var grid = document.createElement('div'); grid.className = 'skala5';
+    for (var v = 1; v <= 5; v++) {
+      var lab = document.createElement('label'); lab.className = 'titik';
+      var inp = document.createElement('input');
+      inp.type = 'radio'; inp.name = nama; inp.value = String(v); inp.required = true;
+      inp.setAttribute('aria-invalid', 'false');
+      if (v === 1) inp.setAttribute('aria-label', v + ', ' + ki);
+      if (v === 5) inp.setAttribute('aria-label', v + ', ' + ka);
+      inp.addEventListener('change', function () { tandaiKurang(fs, false); });
+      var ang = document.createElement('span'); ang.className = 'angka'; ang.textContent = String(v); ang.setAttribute('aria-hidden', 'true');
+      lab.appendChild(inp); lab.appendChild(ang); grid.appendChild(lab);
+      if (v !== 1 && v !== 5) inp.setAttribute('aria-label', String(v));
+    }
+    fs.appendChild(grid);
+    var uj = document.createElement('div'); uj.className = 'ujung'; uj.setAttribute('aria-hidden', 'true');
+    var s1 = document.createElement('span'); s1.textContent = '1 = ' + ki;
+    var s5 = document.createElement('span'); s5.textContent = '5 = ' + ka;
+    uj.appendChild(s1); uj.appendChild(s5); fs.appendChild(uj);
+    wadah.appendChild(fs);
+  }
+  function tandaiKurang(fs, kurang) {
+    fs.classList.toggle('kurang', kurang);
+    Array.prototype.forEach.call(fs.querySelectorAll('input'), function (i) { i.setAttribute('aria-invalid', kurang ? 'true' : 'false'); });
+  }
+  /* Mengumpulkan jawaban; bila ada yang kosong, tandai, beri pesan, dan pindahkan fokus. */
+  function kumpulkan(nama, errId) {
+    var nilai = [], kosong = null;
+    nama.forEach(function (n) {
+      var el = document.querySelector('input[name="' + n + '"]:checked');
+      if (!el) { tandaiKurang($('f-' + n), true); if (!kosong) kosong = n; nilai.push(null); }
+      else nilai.push(parseInt(el.value, 10));
+    });
+    if (kosong) {
+      pesan(errId, 'Masih ada yang belum dijawab. Pertanyaan yang berwarna merah perlu diisi.');
+      var target = document.querySelector('input[name="' + kosong + '"]');
+      $('f-' + kosong).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.focus({ preventScroll: true });
+      return null;
+    }
+    pesan(errId, '');
+    return nilai;
+  }
+
+  /* ============================================================
+     1. PERSETUJUAN DAN DATA DIRI
+     ============================================================ */
+  function siapkanAwal() {
+    var satu = CONFIG.DESAIN === 'satu';
+    $('jml-main').textContent = satu ? 'satu' : 'empat';
+    $('perkiraan-menit').textContent = satu ? '5 sampai 10 menit' : '15 sampai 20 menit';
+    Array.prototype.forEach.call(document.querySelectorAll('.n-ronde'), function (e) { e.textContent = RONDE; });
+    if (CONFIG.KONTAK_PENELITI) {
+      $('kontak').textContent = 'Kalau ada pertanyaan, hubungi: ' + CONFIG.KONTAK_PENELITI; $('kontak').hidden = false;
+      $('kontak-akhir').textContent = 'Kontak peneliti: ' + CONFIG.KONTAK_PENELITI; $('kontak-akhir').hidden = false;
+    }
+    var b = $('banner');
+    if (mode === 'demo') {
+      b.innerHTML = '<b>Mode demo (kondisi ' + DEMO + ').</b> Data tidak disimpan dan tidak dikirim ke mana pun.';
+      b.style.display = 'block';
+    } else if (mode === 'uji') {
+      b.innerHTML = '<b>Mode uji coba.</b> Alamat penyimpanan data belum diisi, jadi jawaban tidak tersimpan.';
+      b.style.display = 'block';
+    }
+    $('cek-setuju').addEventListener('change', function () { $('btn-consent').disabled = !this.checked; });
+    $('btn-consent').addEventListener('click', function () { show('data'); });
+  }
+
+  function daftar() {
+    var nama = $('nama').value.trim(), kelas = $('kelas').value.trim();
+    var usia = parseInt($('usia').value, 10);
+    var jkEl = document.querySelector('input[name="jk"]:checked');
+    var salah = null;
+    $('nama').setAttribute('aria-invalid', nama.length < 2 ? 'true' : 'false');
+    $('kelas').setAttribute('aria-invalid', !kelas ? 'true' : 'false');
+    $('usia').setAttribute('aria-invalid', (isNaN(usia) || usia < 10 || usia > 30) ? 'true' : 'false');
+    if (nama.length < 2) salah = ['nama', 'Mohon isi nama lengkapmu dulu.'];
+    else if (!kelas) salah = ['kelas', 'Mohon isi kode kelas dulu.'];
+    else if (isNaN(usia) || usia < 10 || usia > 30) salah = ['usia', 'Mohon isi usia dengan angka (10 sampai 30).'];
+    else if (!jkEl) salah = [null, 'Mohon pilih jenis kelamin dulu.'];
+    if (salah) {
+      pesan('err-data', salah[1]);
+      var f = salah[0] ? $(salah[0]) : document.querySelector('input[name="jk"]');
+      f.focus();
+      return;
+    }
+    pesan('err-data', '');
+
+    var tombol = $('btn-data');
+    tombol.disabled = true; tombol.textContent = 'Menyiapkan...';
+    var beres = function () { tombol.disabled = false; tombol.textContent = 'Lanjut'; };
+    var sukses = function (h) {
+      state.id = h.id; state.kondisi = h.kondisi; state.urutan = h.urutan; state.kelas = kelas;
+      state.daftarMain = tentukanUrutan(h);
+      state.daftarMain.forEach(function (g) { state.pola[g] = buatPola(g, RONDE); });
+      beres(); bukaCerita();
+    };
+    var gagal = function () {
+      beres();
+      pesan('err-data', 'Koneksi sedang bermasalah sehingga datamu belum tercatat. Coba tekan Lanjut sekali lagi. Kalau tetap gagal, angkat tangan dan peneliti akan membantu.');
+    };
+    if (mode === 'demo') return sukses({ id: 'DEMO', kondisi: DEMO, urutan: acak(1, 12) });
+    if (mode === 'uji') return sukses(acakLokal(kelas));
+    kirim({ action: 'daftar', nama: nama, kelas: kelas, usia: usia, jk: jkEl.value })
+      .then(function (h) {
+        if (!h || !h.ok || KONDISI.indexOf(h.kondisi) < 0) throw new Error('respons tidak valid');
+        sukses(h);
+      })
+      .catch(gagal);
+  }
+
+  function isiPeta(id) {
+    var w = $(id); w.innerHTML = '';
+    state.daftarMain.forEach(function (g, i) {
+      var li = document.createElement('li');
+      var status = i < state.ke ? 'beres' : (i === state.ke ? 'berikut' : '');
+      if (status) li.className = status;
+      var cap = status === 'beres' ? 'Selesai ✓' : (status === 'berikut' ? 'Berikutnya' : '');
+      li.innerHTML = '<span class="no">' + (i + 1) + '</span><span class="ikon" aria-hidden="true">' + GAME[g].ikon +
+        '</span><span>' + GAME[g].nama + '</span><span class="cap">' + cap + '</span>';
+      w.appendChild(li);
+    });
+  }
+  function bukaCerita() {
+    isiPeta('peta-awal');
+    if (state.daftarMain.length === 1) {
+      document.querySelector('#cerita h2').textContent = 'Tantangan Permainan';
+      $('btn-cerita').textContent = 'Mulai';
+    }
+    show('cerita');
+  }
+
+  /* ============================================================
+     2. PERMAINAN
+     ============================================================ */
+  function bukaIntro() {
+    var g = game(), n = state.daftarMain.length;
+    $('intro-ke').textContent = n > 1 ? 'Permainan ' + (state.ke + 1) + ' dari ' + n : '';
+    $('intro-judul').textContent = g.ikon + '  ' + g.nama;
+    $('intro-isi').innerHTML = g.intro;
+    $('intro-tugas').innerHTML = '🔎 ' + g.tugas;
+    show('intro');
+  }
+
+  function hasilRonde() {
+    if (state.fase === 'latihan') return state.t === state.latihanMenang;
+    if (state.kondisi === 'menang') return true;
+    if (state.kondisi === 'kalah') return false;
+    return state.pola[state.daftarMain[state.ke]].charAt(state.t) === '1';
+  }
+
+  function pasangOpsi() {
+    var g = game(), w = $('opsi');
+    w.innerHTML = '';
+    w.className = 'opsi' + (g.opsi.length === 2 ? ' dua-opsi' : '');
+    g.opsi.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.setAttribute('data-k', o.k);
+      b.innerHTML = '<span aria-hidden="true" style="font-size:inherit">' + o.ikon + '</span><span>' + o.label + '</span>';
+      b.addEventListener('click', function () { pilihPemain(b); });
+      w.appendChild(b);
+    });
+    $('petunjuk-kunci').textContent = g.petunjuk;
+    $('arena').className = 'arena ' + g.tema;
+    $('play-judul').textContent = g.nama;
+    g.siapkan($('panggung-isi'));
+  }
+  function setOpsi(nonaktif) {
+    var tombol = document.querySelectorAll('.opt');
+    for (var i = 0; i < tombol.length; i++) {
+      tombol[i].disabled = nonaktif;
+      tombol[i].classList.remove('menang', 'kalah');
+    }
+  }
+  function hentikanRonde() {
+    state.gen++;
+    state.timers.forEach(clearTimeout); state.timers = [];
+    if (game() && game().batal) game().batal();
+  }
+
+  function mulaiLatihan() {
+    hentikanRonde();
+    state.fase = 'latihan'; state.t = 0; state.log = []; state.inGame = true;
+    state.latihanMenang = acak(0, LATIHAN - 1);   // ronde latihan yang menang dipilih acak
+    pasangOpsi(); show('play'); langkahBerikut();
+  }
+  function mulaiSungguhan() {
+    hentikanRonde();
+    state.fase = 'main'; state.t = 0; state.log = []; state.inGame = true;
+    state.mulaiMain = Date.now();
+    pasangOpsi(); show('play'); langkahBerikut();
+  }
+  function langkahBerikut() {
+    var latihan = state.fase === 'latihan', total = latihan ? LATIHAN : RONDE, gen = state.gen;
+    state.busy = true;
+    $('ronde').textContent = (latihan ? 'Latihan ' : 'Ronde ') + (state.t + 1) + ' dari ' + total;
+    $('tag-main').textContent = latihan ? 'latihan, tidak dihitung' : '';
+    $('isi-jalur').style.width = Math.round(state.t / total * 100) + '%';
+    $('status').className = '';
+    setOpsi(true);
+    state.timers = game().tunggu(function () {
+      if (gen !== state.gen || !$('play').classList.contains('aktif')) return;
+      $('status').textContent = 'Giliranmu';
+      setOpsi(false);
+      state.busy = false;
+      state.tReady = performance.now();
+    });
+  }
+  function pilihPemain(tombol) {
+    if (state.busy || !$('play').classList.contains('aktif')) return;
+    state.busy = true;
+    var rt = Math.round(performance.now() - state.tReady);
+    var p = tombol.getAttribute('data-k');
+    var menang = hasilRonde();
+    var h = game().tampilkan(p, menang);
+    var res = menang ? 'menang' : 'kalah';
+    if (state.fase === 'main') state.log.push({ trial: state.t + 1, player: p, comp: h.comp, res: res, rt: rt });
+    setOpsi(true);
+    tombol.classList.add(res);
+    var teks = menang ? 'Kamu menang' : 'Kamu kalah';
+    $('status').textContent = teks; $('status').className = res;
+    umumkan(teks + '. ' + h.teks);
+    var total = state.fase === 'latihan' ? LATIHAN : RONDE;
+    $('isi-jalur').style.width = Math.round((state.t + 1) / total * 100) + '%';
+    if (state.fase === 'main') { var p0 = progres('play'), p1 = progres('cek'); setBar(p0 + (p1 - p0) * (state.t + 1) / RONDE); }
+    var gen = state.gen;
+    state.timers = [setTimeout(function () {
+      if (gen !== state.gen || !$('play').classList.contains('aktif')) return;
+      state.t++;
+      if (state.t >= total) {
+        state.inGame = false;
+        if (state.fase === 'latihan') show('siap');
+        else { state.selesaiMain = Date.now(); bukaCek(); }
+      } else langkahBerikut();
+    }, TAMPIL_MS)];
+  }
+
+  /* ============================================================
+     3. DUA BUTIR SETELAH SETIAP PERMAINAN
+     ============================================================ */
+  function bukaCek() {
+    var g = game(), w = $('daftar-cek');
+    w.innerHTML = '';
+    CEK.forEach(function (c) { buatButir(w, 'cek-' + c.k, c.teks.replace('{nama}', g.nama), c.ki, c.ka); });
+    $('cek-judul').textContent = 'Dua pertanyaan tentang ' + g.nama;
+    pesan('err-cek', '');
+    show('cek');
+  }
+  function statistik() {
+    var log = state.log, n = log.length, i, menang = 0, rt = 0, sama = 0, hit = {};
+    for (i = 0; i < n; i++) {
+      if (log[i].res === 'menang') menang++;
+      rt += log[i].rt; hit[log[i].player] = (hit[log[i].player] || 0) + 1;
+      if (i > 0 && log[i].player === log[i - 1].player) sama++;
+    }
+    var ent = 0;
+    Object.keys(hit).forEach(function (k) { var q = hit[k] / n; ent -= q * Math.log(q) / Math.LN2; });
+    return {
+      nMenang: menang, nKalah: n - menang,
+      rtRata2: n ? Math.round(rt / n) : 0,
+      propSama: n > 1 ? Math.round(sama / (n - 1) * 1000) / 1000 : 0,
+      entropi: Math.round(ent * 1000) / 1000
+    };
+  }
+  function lanjutCek() {
+    var nilai = kumpulkan(CEK.map(function (c) { return 'cek-' + c.k; }), 'err-cek');
+    if (!nilai) return;
+    var s = statistik(), kode = state.daftarMain[state.ke];
+    antre({
+      action: 'permainan', kunci: state.id + '-' + kode,
+      id: state.id, kelas: state.kelas, kondisi: state.kondisi,
+      permainan: kode, urutanKe: state.ke + 1, urutanPermainan: state.daftarMain.join('-'),
+      durasi: Math.round((state.selesaiMain - state.mulaiMain) / 1000), ronde: state.log.length,
+      nMenang: s.nMenang, nKalah: s.nKalah, rtRata2: s.rtRata2, propSama: s.propSama, entropi: s.entropi,
+      bosan: nilai[0], kontrol: nilai[1],
+      log: state.log.map(function (x) { return [x.trial, x.player, x.comp, x.res, x.rt]; })
+    });
+    if (state.ke + 1 < state.daftarMain.length) {
+      state.ke++;
+      $('jeda-judul').textContent = 'Permainan ' + state.ke + ' dari ' + state.daftarMain.length + ' selesai';
+      isiPeta('peta-jeda');
+      show('jeda');
+    } else {
+      show('tbs');
+    }
+  }
+
+  /* ============================================================
+     4. TBS-STATE DAN PERTANYAAN PENUTUP
+     ============================================================ */
+  var jawabTBS = null;
+  function lanjutTBS() {
+    var nilai = kumpulkan(TBS.map(function (x, i) { return 'tbs' + (i + 1); }), 'err-tbs');
+    if (!nilai) return;
+    jawabTBS = nilai;
+    show('tanya');
+  }
+  function rata(arr) { return Math.round(arr.reduce(function (a, b) { return a + b; }, 0) / arr.length * 100) / 100; }
+  function kirimAkhir() {
+    var nilai = kumpulkan(PENUTUP.map(function (x) { return 'tutup-' + x.k; }), 'err-tanya');
+    if (!nilai) return;
+    var j = document.querySelector('input[name="janggal"]:checked');
+    if (!j) {
+      pesan('err-tanya', 'Mohon pilih Ya atau Tidak pada pertanyaan tentang hal yang janggal.');
+      document.querySelector('input[name="janggal"]').focus();
+      return;
+    }
+    pesan('err-tanya', '');
+    if (!state.terkirimAkhir) {
+      state.terkirimAkhir = true;
+      var t = jawabTBS, sub = function (k) { return rata(t.filter(function (v, i) { return TBS[i].kom === k; })); };
+      antre({
+        action: 'akhir', kunci: state.id + '-akhir',
+        id: state.id, kelas: state.kelas, kondisi: state.kondisi, urutanPermainan: state.daftarMain.join('-'),
+        tbs: t, tbsAfektif: sub('a'), tbsKognitif: sub('c'), tbsMotivasional: sub('m'), tbsFisiologis: sub('p'), tbsRata2: rata(t),
+        kesal: nilai[0], tantangan: nilai[1], penting: nilai[2],
+        tebakanTujuan: $('t-tujuan').value.trim(),
+        janggal: j.value, janggalApa: j.value === 'ya' ? $('t-janggal').value.trim() : ''
+      });
+    }
+    var tombol = $('btn-tanya');
+    tombol.disabled = true; tombol.textContent = 'Mengirim...';
+    var batas = new Promise(function (res) { setTimeout(function () { res(false); }, 30000); });
+    Promise.race([tungguTerkirim(), batas]).then(function (ok) {
+      tombol.disabled = false; tombol.textContent = 'Kirim ulang';
+      if (ok) {
+        try { localStorage.removeItem(kunciSimpan()); } catch (e) { /* abaikan */ }
+        show('end');
+      } else {
+        pesan('err-tanya', 'Sebagian data belum terkirim karena sinyal. Pastikan internet menyala, lalu tekan Kirim ulang. Jawabanmu tidak hilang.');
+        $('teks-cadangan').value = JSON.stringify({ kode: state.id, kelas: state.kelas, kondisi: state.kondisi, data: antrean });
+        $('kotak-cadangan').hidden = false;
+      }
+    });
+  }
+  function salin() {
+    var o = $('teks-cadangan'); o.select();
+    try { navigator.clipboard.writeText(o.value); } catch (e) { try { document.execCommand('copy'); } catch (e2) { /* abaikan */ } }
+    this.textContent = 'Tersalin';
+  }
+
+  /* ============================================================
+     BERHENTI
+     ============================================================ */
+  function mintaBerhenti() {
+    var aktif = document.querySelector('.langkah.aktif');
+    state.halamanSebelumStop = aktif ? aktif.id : 'consent';
+    if (state.halamanSebelumStop === 'play') { hentikanRonde(); state.inGame = false; state.busy = true; }
+    show('stop');
+  }
+  function batalBerhenti() {
+    var asal = state.halamanSebelumStop;
+    if (asal === 'play') return state.fase === 'latihan' ? mulaiLatihan() : mulaiSungguhan();   // permainan diulang dari awal
+    show(asal || 'consent');
+  }
+  function yaBerhenti() {
+    state.inGame = false;
+    if (state.id) kirim({ action: 'berhenti', id: state.id, saat: state.halamanSebelumStop, permainanKe: state.ke + 1 }).catch(function () {});
+    antrean = []; simpanAntrean();
+    show('berhenti');
+  }
+
+  /* ============================================================
+     MULAI
+     ============================================================ */
+  siapkanAwal();
+  TBS.forEach(function (x, i) { buatButir($('daftar-tbs'), 'tbs' + (i + 1), (i + 1) + '. ' + x.teks, 'Sama sekali tidak benar', 'Sepenuhnya benar'); });
+  PENUTUP.forEach(function (x) { buatButir($('daftar-penutup'), 'tutup-' + x.k, x.teks, x.ki, x.ka); });
+  $('btn-data').addEventListener('click', daftar);
+  $('btn-cerita').addEventListener('click', bukaIntro);
+  $('btn-latihan').addEventListener('click', mulaiLatihan);
+  $('btn-mulai').addEventListener('click', mulaiSungguhan);
+  $('btn-cek').addEventListener('click', lanjutCek);
+  $('btn-jeda').addEventListener('click', bukaIntro);
+  $('btn-tbs').addEventListener('click', lanjutTBS);
+  $('btn-tanya').addEventListener('click', kirimAkhir);
+  $('btn-salin').addEventListener('click', salin);
+  $('btn-berhenti').addEventListener('click', mintaBerhenti);
+  $('btn-stop-tidak').addEventListener('click', batalBerhenti);
+  $('btn-stop-ya').addEventListener('click', yaBerhenti);
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="janggal"]'), function (r) {
+    r.addEventListener('change', function () { $('wadah-janggal').hidden = this.value !== 'ya'; });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!$('play').classList.contains('aktif') || state.busy) return;
+    var tekan = (e.key || '').toLowerCase();
+    var o = game().opsi.filter(function (x) { return x.tombol === tekan; })[0];
+    if (o) { e.preventDefault(); pilihPemain(document.querySelector('.opt[data-k="' + o.k + '"]')); }
+  });
+  window.addEventListener('beforeunload', function (e) {
+    if ((state.inGame || antrean.length > 0) && mode === 'server') { e.preventDefault(); e.returnValue = ''; }
+  });
+  show('consent');
+})();
+</script>
+</body>
+</html>
