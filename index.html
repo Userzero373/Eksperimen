@@ -449,6 +449,34 @@
   .legenda { background: var(--lembut); border-radius: 12px; padding: 10px 14px; font-size: .92rem; margin-bottom: 18px; }
   .legenda ol { margin: 4px 0 0; padding-left: 20px; }
 
+  /* Layar selamat setelah permainan terakhir */
+  .pesta { font-size: 72px; line-height: 1; margin: 6px 0 12px; display: inline-block; }
+  @media (prefers-reduced-motion: no-preference) {
+    #selamat.aktif .pesta { animation: meletus .8s cubic-bezier(.2,1.4,.4,1) both, goyang-pesta 1.6s ease-in-out .8s infinite; }
+    #selamat.aktif .lencana span { animation: lompat .6s ease-out both; }
+    #selamat.aktif .lencana span:nth-child(2) { animation-delay: .1s; }
+    #selamat.aktif .lencana span:nth-child(3) { animation-delay: .2s; }
+    #selamat.aktif .lencana span:nth-child(4) { animation-delay: .3s; }
+  }
+  @keyframes meletus { from { scale: 0; rotate: -30deg; } to { scale: 1; rotate: 0deg; } }
+  @keyframes goyang-pesta { 0%,100% { rotate: -8deg; } 50% { rotate: 8deg; } }
+  @keyframes lompat { from { opacity: 0; translate: 0 20px; } to { opacity: 1; translate: 0 0; } }
+  .lencana { font-size: 30px; letter-spacing: 8px; margin: 4px 0 14px; }
+  .lencana span { display: inline-block; }
+  .konfeti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 30; }
+  .konfeti i {
+    position: absolute; top: -20px; left: var(--x);
+    width: var(--w); height: var(--h); background: var(--warna); border-radius: 2px;
+    opacity: 0;
+    animation: jatuh var(--dur) cubic-bezier(.3,.6,.5,1) var(--tunda) forwards;
+  }
+  @keyframes jatuh {
+    0% { opacity: 1; translate: 0 0; rotate: 0deg; }
+    85% { opacity: 1; }
+    100% { opacity: 0; translate: var(--geser) 108vh; rotate: var(--putar); }
+  }
+  @media (prefers-reduced-motion: reduce) { .konfeti { display: none; } }
+
   textarea.cadangan {
     width: 100%; min-height: 110px; font: 12.5px/1.4 ui-monospace, Menlo, Consolas, monospace;
     padding: 10px; border: 2px solid var(--garis); border-radius: 12px;
@@ -597,10 +625,21 @@
     </div>
   </section>
 
+  <!-- 7b. UCAPAN SELAMAT (SETELAH PERMAINAN TERAKHIR, SEBELUM KUESIONER) -->
+  <section class="langkah" id="selamat">
+    <div class="kartu tengah">
+      <div class="pesta" aria-hidden="true">🎉</div>
+      <h1 tabindex="-1">Selamat! Kamu sudah menyelesaikan semua permainan</h1>
+      <div class="lencana" aria-hidden="true" id="lencana"></div>
+      <p>Terima kasih sudah bermain sampai akhir. Tinggal satu langkah lagi: beberapa pertanyaan tentang perasaanmu selama bermain tadi.</p>
+      <button type="button" class="tombol lebar" id="btn-selamat">Lanjut ke kuesioner</button>
+    </div>
+  </section>
+
   <!-- 8. TBS-STATE (SEKALI DI AKHIR) -->
   <section class="langkah" id="tbs">
     <div class="kartu">
-      <h2 tabindex="-1">Semua permainan selesai 🎉</h2>
+      <h2 tabindex="-1">Kuesioner terakhir</h2>
       <p>Sekarang pikirkan <b>seluruh permainan tadi</b>. Seberapa benar setiap pernyataan berikut menggambarkan dirimu selama bermain?</p>
       <div class="legenda">
         <ol>
@@ -1144,7 +1183,7 @@
 
   function progres(id) {
     var n = state.daftarMain.length || 1, porsi = 70 / n, dasar = 12 + porsi * state.ke;
-    var tetap = { consent: 3, data: 7, cerita: 12, tbs: 86, tanya: 94, end: 100 };
+    var tetap = { consent: 3, data: 7, cerita: 12, selamat: 85, tbs: 86, tanya: 94, end: 100 };
     var dalam = { intro: 0.05, siap: 0.15, play: 0.15, cek: 0.85, jeda: 0 };
     if (id in tetap) return tetap[id];
     if (id in dalam) return dasar + porsi * dalam[id];
@@ -1158,7 +1197,7 @@
     var sec = $(id);
     sec.classList.add('aktif');
     setBar(progres(id));
-    $('btn-berhenti').hidden = ['data', 'cerita', 'intro', 'siap', 'play', 'cek', 'jeda', 'tbs', 'tanya'].indexOf(id) < 0;
+    $('btn-berhenti').hidden = ['data', 'cerita', 'intro', 'siap', 'play', 'cek', 'jeda', 'selamat', 'tbs', 'tanya'].indexOf(id) < 0;
     if (state.daftarMain.length && ['intro', 'siap', 'play', 'cek'].indexOf(id) >= 0) {
       $('judul-atas').textContent = 'Permainan ' + (state.ke + 1) + ' dari ' + state.daftarMain.length + ' · ' + game().nama;
     } else {
@@ -1545,8 +1584,43 @@
       isiPeta('peta-jeda');
       show('jeda');
     } else {
-      show('tbs');
+      bukaSelamat();
     }
+  }
+
+  /* Layar selamat: tampil sekali setelah permainan terakhir (apa pun permainannya),
+     isinya netral supaya tidak menyiratkan menang atau kalah. */
+  function konfeti() {
+    var lama = document.querySelector('.konfeti'); if (lama) lama.remove();
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var w = document.createElement('div'); w.className = 'konfeti'; w.setAttribute('aria-hidden', 'true');
+    var warna = ['#f2b13b', '#4a56d4', '#23885a', '#c63d37', '#e38b4f', '#8b6fd6', '#4fa37a', '#f06bb0'];
+    for (var i = 0; i < 90; i++) {
+      var p = document.createElement('i');
+      p.style.setProperty('--x', Math.round(Math.random() * 100) + '%');
+      p.style.setProperty('--w', (6 + Math.random() * 8).toFixed(1) + 'px');
+      p.style.setProperty('--h', (8 + Math.random() * 12).toFixed(1) + 'px');
+      p.style.setProperty('--warna', warna[i % warna.length]);
+      p.style.setProperty('--dur', (2.6 + Math.random() * 2).toFixed(2) + 's');
+      p.style.setProperty('--tunda', (Math.random() * 1.2).toFixed(2) + 's');
+      p.style.setProperty('--geser', Math.round(-80 + Math.random() * 160) + 'px');
+      p.style.setProperty('--putar', Math.round(360 + Math.random() * 720) + 'deg');
+      if (i % 3 === 0) p.style.borderRadius = '50%';
+      w.appendChild(p);
+    }
+    document.body.appendChild(w);
+    setTimeout(function () { if (w.parentNode) w.remove(); }, 6500);
+  }
+  function bukaSelamat() {
+    var l = $('lencana'); l.innerHTML = '';
+    state.daftarMain.forEach(function (g) { var s = document.createElement('span'); s.textContent = GAME[g].ikon; l.appendChild(s); });
+    show('selamat');
+    konfeti();
+    umumkan('Selamat, kamu sudah menyelesaikan semua permainan.');
+  }
+  function lanjutSelamat() {
+    var k = document.querySelector('.konfeti'); if (k) k.remove();
+    show('tbs');
   }
 
   /* ============================================================
@@ -1636,6 +1710,7 @@
   $('btn-mulai').addEventListener('click', mulaiSungguhan);
   $('btn-cek').addEventListener('click', lanjutCek);
   $('btn-jeda').addEventListener('click', bukaIntro);
+  $('btn-selamat').addEventListener('click', lanjutSelamat);
   $('btn-tbs').addEventListener('click', lanjutTBS);
   $('btn-tanya').addEventListener('click', kirimAkhir);
   $('btn-salin').addEventListener('click', salin);
