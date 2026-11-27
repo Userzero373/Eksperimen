@@ -449,6 +449,29 @@
   .legenda { background: var(--lembut); border-radius: 12px; padding: 10px 14px; font-size: .92rem; margin-bottom: 18px; }
   .legenda ol { margin: 4px 0 0; padding-left: 20px; }
 
+  /* Lembar persetujuan dan tanda tangan */
+  .identitas { margin: 6px 0 16px; padding: 12px 14px; background: var(--lembut); border-radius: 14px; display: grid; gap: 6px; }
+  .identitas div { display: grid; grid-template-columns: 116px 1fr; gap: 8px; }
+  .identitas dt { color: var(--redup); font-size: .92rem; }
+  .identitas dt::after { content: ' :'; }
+  .identitas dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+  .tempat-tanggal { margin: 18px 0 8px; font-weight: 600; }
+  .pad {
+    position: relative; max-width: 420px; margin: 0 auto; aspect-ratio: 16 / 9;
+    background: #fff; border: 2px solid var(--garis); border-radius: 14px; overflow: hidden;
+    transition: border-color .12s;
+  }
+  .pad canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; -webkit-user-select: none; user-select: none; }
+  .pad .garis-ttd { position: absolute; left: 6%; right: 6%; bottom: 24%; border-bottom: 2px dashed #b7bfca; pointer-events: none; }
+  .pad .tanda-x { position: absolute; left: 6%; bottom: 27%; font-weight: 800; font-size: 18px; color: #5d6978; pointer-events: none; }
+  .pad .petunjuk-ttd { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding-bottom: 12%; color: #5d6978; font-size: .95rem; pointer-events: none; }
+  .pad.berisi .petunjuk-ttd { display: none; }
+  .pad.menggambar { border-color: var(--aksen); }
+  .pad.kurang { border-color: var(--salah); }
+  .nama-ttd { text-align: center; font-weight: 700; margin: 8px 0 0; overflow-wrap: anywhere; }
+  .baris-ttd { display: flex; justify-content: center; margin-top: 4px; }
+  .tombol.kecil { padding: 8px 18px; min-block-size: 44px; margin-top: 4px; font-size: .92rem; }
+
   /* Layar selamat setelah permainan terakhir */
   .pesta { font-size: 72px; line-height: 1; margin: 6px 0 12px; display: inline-block; }
   @media (prefers-reduced-motion: no-preference) {
@@ -519,15 +542,12 @@
         <li><span class="ik" aria-hidden="true">🎮</span><span>Kamu akan memainkan <b id="jml-main">empat</b> permainan singkat melawan komputer, lalu menjawab beberapa pertanyaan tentang perasaanmu. Seluruhnya sekitar <b id="perkiraan-menit">15 sampai 20 menit</b>.</span></li>
         <li><span class="ik" aria-hidden="true">🙋</span><span>Keikutsertaanmu <b>sukarela</b>. Kamu boleh berhenti kapan saja lewat tombol <b>Berhenti</b> di pojok kanan atas, tanpa akibat apa pun, termasuk pada nilaimu.</span></li>
         <li><span class="ik" aria-hidden="true">💬</span><span>Tidak ada jawaban benar atau salah. Yang kami butuhkan hanya jawaban yang jujur.</span></li>
-        <li><span class="ik" aria-hidden="true">🔒</span><span>Nama hanya dipakai untuk daftar hadir. Nama disimpan <b>terpisah</b> dari jawabanmu, hanya dilihat tim peneliti, dan laporan penelitian hanya memakai kode.</span></li>
+        <li><span class="ik" aria-hidden="true">🔒</span><span>Nama dan tanda tanganmu hanya dipakai untuk daftar hadir dan bukti persetujuan. Keduanya disimpan <b>terpisah</b> dari jawabanmu, hanya dilihat tim peneliti, dan laporan penelitian hanya memakai kode.</span></li>
         <li><span class="ik" aria-hidden="true">🧩</span><span>Ada bagian dari cara kerja permainan yang baru kami jelaskan <b>setelah sesi selesai</b>, supaya hasil penelitian tidak terpengaruh. Peneliti akan menjelaskannya secara langsung.</span></li>
       </ul>
       <p class="redup" id="kontak" hidden></p>
-      <label class="setuju">
-        <input type="checkbox" id="cek-setuju">
-        <span>Saya sudah membaca penjelasan di atas dan bersedia ikut dalam penelitian ini secara sukarela.</span>
-      </label>
-      <button type="button" class="tombol lebar" id="btn-consent" disabled>Lanjut</button>
+      <p class="catatan">Di halaman berikutnya kamu mengisi data diri, lalu membaca dan menandatangani lembar persetujuan. Tanda tangan bisa digambar dengan jari atau mouse.</p>
+      <button type="button" class="tombol lebar" id="btn-consent">Lanjut</button>
     </div>
   </section>
 
@@ -552,6 +572,51 @@
       </fieldset>
       <div class="galat" id="err-data"></div>
       <button type="button" class="tombol lebar" id="btn-data">Lanjut</button>
+    </div>
+  </section>
+
+  <!-- 2b. LEMBAR PERSETUJUAN (INFORMED CONSENT) DENGAN TANDA TANGAN -->
+  <section class="langkah" id="persetujuan">
+    <div class="kartu">
+      <h2 tabindex="-1">Lembar Pernyataan (Informed Consent)</h2>
+      <p class="redup">Partisipasi dalam kegiatan penelitian. Mohon baca sampai selesai, lalu tanda tangan di bagian bawah.</p>
+      <p>Saya yang bertanda tangan di bawah ini:</p>
+      <dl class="identitas">
+        <div><dt>Nama Lengkap</dt><dd id="id-nama"></dd></div>
+        <div><dt>Usia</dt><dd id="id-usia"></dd></div>
+        <div><dt>Jenis Kelamin</dt><dd id="id-jk"></dd></div>
+      </dl>
+      <fieldset class="item" id="f-setuju">
+        <legend>Menyatakan bahwa saya <b>TIDAK BERSEDIA / BERSEDIA</b> menjadi partisipan dalam kegiatan penelitian yang dilakukan oleh Mahasiswa Psikologi UIN Sunan Kalijaga selaku peneliti.</legend>
+        <div class="dua">
+          <label class="pilih"><input type="radio" name="setuju" value="ya"><span>Bersedia</span></label>
+          <label class="pilih"><input type="radio" name="setuju" value="tidak"><span>Tidak bersedia</span></label>
+        </div>
+      </fieldset>
+      <p>Dalam kegiatan ini, saya telah menyadari, memahami, dan menerima bahwa:</p>
+      <ol class="langkah-main">
+        <li><span>Keikutsertaan saya bersifat sukarela, dan saya dapat berhenti kapan pun tanpa konsekuensi apa pun, termasuk terhadap nilai sekolah saya.</span></li>
+        <li><span>Saya bersedia terlibat aktif dalam seluruh rangkaian kegiatan sampai selesai.</span></li>
+        <li><span>Saya akan memberikan informasi dengan jujur sesuai dengan yang saya alami dan rasakan.</span></li>
+        <li><span>Identitas dan seluruh informasi yang saya berikan akan dijaga kerahasiaannya dan hanya digunakan untuk kepentingan penelitian.</span></li>
+      </ol>
+      <p>Dalam penandatanganan lembar ini, saya tidak mendapat paksaan dari pihak mana pun. Saya bersedia mengikuti seluruh kegiatan dari awal hingga selesai serta menerima segala hal terkait dengan pelaksanaan kegiatan ini.</p>
+      <p>Demikian lembar pernyataan ini dibuat dengan sebenar-benarnya. Lembar pernyataan ini berlaku sejak ditandatangani oleh kedua belah pihak.</p>
+      <div id="wadah-ttd">
+        <p class="tempat-tanggal">Yogyakarta, <span id="tgl-ttd"></span></p>
+        <p id="lbl-ttd" style="margin:0 0 6px;font-weight:600">Tanda tangan</p>
+        <div class="pad" id="pad">
+          <canvas id="ttd" role="img" aria-labelledby="lbl-ttd" aria-describedby="ttd-hint"></canvas>
+          <div class="garis-ttd" aria-hidden="true"></div>
+          <span class="tanda-x" aria-hidden="true">✕</span>
+          <div class="petunjuk-ttd" aria-hidden="true">Tanda tangan di sini</div>
+        </div>
+        <p class="nama-ttd">( <span id="nama-ttd"></span> )</p>
+        <p class="redup tengah" id="ttd-hint" style="margin:6px 0 0">Gambar tanda tanganmu di kotak putih dengan jari atau mouse.</p>
+        <div class="baris-ttd"><button type="button" class="tombol sekunder kecil" id="btn-ulang-ttd">Hapus dan ulangi</button></div>
+      </div>
+      <div class="galat" id="err-ttd"></div>
+      <button type="button" class="tombol lebar" id="btn-ttd">Tanda tangani dan lanjut</button>
     </div>
   </section>
 
@@ -1183,7 +1248,7 @@
 
   function progres(id) {
     var n = state.daftarMain.length || 1, porsi = 70 / n, dasar = 12 + porsi * state.ke;
-    var tetap = { consent: 3, data: 7, cerita: 12, selamat: 85, tbs: 86, tanya: 94, end: 100 };
+    var tetap = { consent: 3, data: 6, persetujuan: 9, cerita: 12, selamat: 85, tbs: 86, tanya: 94, end: 100 };
     var dalam = { intro: 0.05, siap: 0.15, play: 0.15, cek: 0.85, jeda: 0 };
     if (id in tetap) return tetap[id];
     if (id in dalam) return dasar + porsi * dalam[id];
@@ -1196,8 +1261,9 @@
     for (var i = 0; i < semua.length; i++) semua[i].classList.remove('aktif');
     var sec = $(id);
     sec.classList.add('aktif');
+    if (id === 'persetujuan') requestAnimationFrame(ukuranTtd);
     setBar(progres(id));
-    $('btn-berhenti').hidden = ['data', 'cerita', 'intro', 'siap', 'play', 'cek', 'jeda', 'selamat', 'tbs', 'tanya'].indexOf(id) < 0;
+    $('btn-berhenti').hidden = ['data', 'persetujuan', 'cerita', 'intro', 'siap', 'play', 'cek', 'jeda', 'selamat', 'tbs', 'tanya'].indexOf(id) < 0;
     if (state.daftarMain.length && ['intro', 'siap', 'play', 'cek'].indexOf(id) >= 0) {
       $('judul-atas').textContent = 'Permainan ' + (state.ke + 1) + ' dari ' + state.daftarMain.length + ' · ' + game().nama;
     } else {
@@ -1365,11 +1431,10 @@
       b.innerHTML = '<b>Mode uji coba.</b> Alamat penyimpanan data belum diisi, jadi jawaban tidak tersimpan.';
       b.style.display = 'block';
     }
-    $('cek-setuju').addEventListener('change', function () { $('btn-consent').disabled = !this.checked; });
     $('btn-consent').addEventListener('click', function () { show('data'); });
   }
 
-  function daftar() {
+  function lanjutData() {
     var nama = $('nama').value.trim(), kelas = $('kelas').value.trim();
     var usia = parseInt($('usia').value, 10);
     var jkEl = document.querySelector('input[name="jk"]:checked');
@@ -1388,28 +1453,163 @@
       return;
     }
     pesan('err-data', '');
+    state.profil = { nama: nama, kelas: kelas, usia: usia, jk: jkEl.value };
+    bukaPersetujuan();
+  }
 
-    var tombol = $('btn-data');
-    tombol.disabled = true; tombol.textContent = 'Menyiapkan...';
-    var beres = function () { tombol.disabled = false; tombol.textContent = 'Lanjut'; };
-    var sukses = function (h) {
-      state.id = h.id; state.kondisi = h.kondisi; state.urutan = h.urutan; state.kelas = kelas;
-      state.daftarMain = tentukanUrutan(h);
-      state.daftarMain.forEach(function (g) { state.pola[g] = buatPola(g, RONDE); });
-      beres(); bukaCerita();
-    };
-    var gagal = function () {
-      beres();
-      pesan('err-data', 'Koneksi sedang bermasalah sehingga datamu belum tercatat. Coba tekan Lanjut sekali lagi. Kalau tetap gagal, angkat tangan dan peneliti akan membantu.');
-    };
-    if (mode === 'demo') return sukses({ id: 'DEMO', kondisi: DEMO, urutan: acak(1, 12) });
-    if (mode === 'uji') return sukses(acakLokal(kelas));
-    kirim({ action: 'daftar', nama: nama, kelas: kelas, usia: usia, jk: jkEl.value })
-      .then(function (h) {
+  /* ============================================================
+     LEMBAR PERSETUJUAN DAN TANDA TANGAN
+     Tidak ada data yang dikirim sebelum peserta menandatangani.
+     Pendaftaran ke server baru terjadi saat tombol tanda tangan ditekan.
+     ============================================================ */
+  var NAMA_JK = { L: 'Laki-laki', P: 'Perempuan' };
+  var ttd = { garis: [], aktif: null, w: 0, h: 0, g: null };
+
+  /* Goresan disimpan sebagai koordinat 0-1 supaya gambar tetap utuh saat ukuran kotak berubah. */
+  function lukisTtd(g, w, h) {
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#1c2530'; g.fillStyle = '#1c2530';
+    g.lineWidth = Math.max(2, w * 0.0075); g.lineCap = 'round'; g.lineJoin = 'round';
+    ttd.garis.forEach(function (s) {
+      var p = s.map(function (t) { return [t[0] * w, t[1] * h]; });
+      if (p.length === 1) { g.beginPath(); g.arc(p[0][0], p[0][1], g.lineWidth / 2, 0, 6.2832); g.fill(); return; }
+      g.beginPath(); g.moveTo(p[0][0], p[0][1]);
+      for (var i = 1; i < p.length - 1; i++) {
+        g.quadraticCurveTo(p[i][0], p[i][1], (p[i][0] + p[i + 1][0]) / 2, (p[i][1] + p[i + 1][1]) / 2);
+      }
+      g.lineTo(p[p.length - 1][0], p[p.length - 1][1]);
+      g.stroke();
+    });
+  }
+  function ukuranTtd() {
+    var c = $('ttd'), r = c.getBoundingClientRect();
+    if (!r.width) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+    ttd.g = c.getContext('2d'); ttd.g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ttd.w = r.width; ttd.h = r.height;
+    lukisTtd(ttd.g, ttd.w, ttd.h);
+  }
+  function panjangTtd() {
+    var n = 0;
+    ttd.garis.forEach(function (s) {
+      for (var i = 1; i < s.length; i++) n += Math.sqrt(Math.pow((s[i][0] - s[i - 1][0]) * ttd.w, 2) + Math.pow((s[i][1] - s[i - 1][1]) * ttd.h, 2));
+    });
+    return n;
+  }
+  function pasangPad() {
+    var c = $('ttd'), pad = $('pad');
+    function titik(e) {
+      var r = c.getBoundingClientRect();
+      return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))];
+    }
+    c.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault();
+      if (!ttd.g) ukuranTtd();
+      if (!ttd.g) return;
+      try { c.setPointerCapture(e.pointerId); } catch (x) { /* abaikan */ }
+      ttd.aktif = [titik(e)]; ttd.garis.push(ttd.aktif);
+      pad.classList.add('menggambar', 'berisi'); pad.classList.remove('kurang');
+      pesan('err-ttd', '');
+      lukisTtd(ttd.g, ttd.w, ttd.h);
+    });
+    c.addEventListener('pointermove', function (e) {
+      if (!ttd.aktif) return;
+      e.preventDefault();
+      ttd.aktif.push(titik(e)); lukisTtd(ttd.g, ttd.w, ttd.h);
+    });
+    var selesai = function () { ttd.aktif = null; pad.classList.remove('menggambar'); };
+    c.addEventListener('pointerup', selesai);
+    c.addEventListener('pointercancel', selesai);
+    c.addEventListener('lostpointercapture', selesai);
+  }
+  function ulangTtd() {
+    ttd.garis = []; ttd.aktif = null;
+    if (ttd.g) lukisTtd(ttd.g, ttd.w, ttd.h);
+    $('pad').classList.remove('berisi', 'kurang', 'menggambar');
+    pesan('err-ttd', '');
+    umumkan('Tanda tangan dihapus.');
+  }
+  /* Gambar akhir: latar putih, 400 px lebar. Batas satu sel Google Sheets 50.000 karakter, jadi dikompres bila perlu. */
+  function eksporTtd() {
+    var lebar = 400, tinggi = Math.round(lebar * 9 / 16);
+    var c = document.createElement('canvas'); c.width = lebar; c.height = tinggi;
+    lukisTtd(c.getContext('2d'), lebar, tinggi);
+    var u = c.toDataURL('image/png');
+    if (u.length > 45000) u = c.toDataURL('image/jpeg', 0.8);
+    return u;
+  }
+
+  function bukaPersetujuan() {
+    var p = state.profil;
+    $('id-nama').textContent = p.nama;
+    $('id-usia').textContent = p.usia + ' tahun';
+    $('id-jk').textContent = NAMA_JK[p.jk];
+    $('nama-ttd').textContent = p.nama;
+    state.tglLembar = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    $('tgl-ttd').textContent = state.tglLembar;
+    pesan('err-ttd', '');
+    show('persetujuan');
+  }
+  function aturPilihan() {
+    var el = document.querySelector('input[name="setuju"]:checked'), v = el ? el.value : '';
+    $('wadah-ttd').hidden = v === 'tidak';
+    $('btn-ttd').textContent = v === 'tidak' ? 'Selesai, saya tidak bersedia' : 'Tanda tangani dan lanjut';
+    tandaiKurang($('f-setuju'), false);
+    pesan('err-ttd', '');
+    if (v !== 'tidak') requestAnimationFrame(ukuranTtd);
+  }
+  function simpanPersetujuan() {
+    var pil = document.querySelector('input[name="setuju"]:checked');
+    if (!pil) {
+      tandaiKurang($('f-setuju'), true);
+      pesan('err-ttd', 'Mohon pilih Bersedia atau Tidak bersedia dulu.');
+      document.querySelector('input[name="setuju"]').focus();
+      return;
+    }
+    if (pil.value === 'tidak') {
+      ttd.garis = []; state.profil = null;
+      show('berhenti');
+      return;
+    }
+    if (panjangTtd() < 40) {
+      $('pad').classList.add('kurang');
+      pesan('err-ttd', 'Mohon tanda tangan dulu di kotak putih. Gambar yang terlalu pendek belum dihitung.');
+      return;
+    }
+    pesan('err-ttd', '');
+    var p = state.profil, gambar = eksporTtd(), tombol = $('btn-ttd');
+    tombol.disabled = true; tombol.textContent = 'Menyimpan...';
+    var beres = function () { tombol.disabled = false; tombol.textContent = 'Tanda tangani dan lanjut'; };
+    /* Pendaftaran hanya sekali. Kalau pengiriman tanda tangan gagal lalu diulang, id yang sama dipakai lagi. */
+    var daftarDulu = function () {
+      if (state.id) return Promise.resolve(null);
+      if (mode === 'demo') return Promise.resolve({ id: 'DEMO', kondisi: DEMO, urutan: acak(1, 12) });
+      if (mode === 'uji') return Promise.resolve(acakLokal(p.kelas));
+      return kirim({ action: 'daftar', nama: p.nama, kelas: p.kelas, usia: p.usia, jk: p.jk }).then(function (h) {
         if (!h || !h.ok || KONDISI.indexOf(h.kondisi) < 0) throw new Error('respons tidak valid');
-        sukses(h);
-      })
-      .catch(gagal);
+        return h;
+      });
+    };
+    daftarDulu().then(function (h) {
+      if (h) {
+        state.id = h.id; state.kondisi = h.kondisi; state.urutan = h.urutan; state.kelas = p.kelas;
+        state.daftarMain = tentukanUrutan(h);
+        state.daftarMain.forEach(function (g) { state.pola[g] = buatPola(g, RONDE); });
+      }
+      return kirim({
+        action: 'persetujuan', kunci: state.id + '-persetujuan', id: state.id, kelas: p.kelas,
+        nama: p.nama, usia: p.usia, jk: p.jk, pernyataan: 'BERSEDIA', tanggal: state.tglLembar, ttd: gambar
+      });
+    }).then(function (r) {
+      if (!r || !r.ok) throw new Error('gagal');
+      beres(); bukaCerita();
+    }).catch(function () {
+      beres();
+      pesan('err-ttd', 'Koneksi sedang bermasalah sehingga tanda tanganmu belum tercatat. Tanda tanganmu masih ada, tekan tombol sekali lagi. Kalau tetap gagal, angkat tangan dan peneliti akan membantu.');
+    });
   }
 
   function isiPeta(id) {
@@ -1704,7 +1904,12 @@
   siapkanAwal();
   TBS.forEach(function (x, i) { buatButir($('daftar-tbs'), 'tbs' + (i + 1), (i + 1) + '. ' + x.teks, 'Sama sekali tidak benar', 'Sepenuhnya benar'); });
   PENUTUP.forEach(function (x) { buatButir($('daftar-penutup'), 'tutup-' + x.k, x.teks, x.ki, x.ka); });
-  $('btn-data').addEventListener('click', daftar);
+  $('btn-data').addEventListener('click', lanjutData);
+  $('btn-ttd').addEventListener('click', simpanPersetujuan);
+  $('btn-ulang-ttd').addEventListener('click', ulangTtd);
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="setuju"]'), function (r) { r.addEventListener('change', aturPilihan); });
+  pasangPad();
+  window.addEventListener('resize', function () { if ($('persetujuan').classList.contains('aktif')) ukuranTtd(); });
   $('btn-cerita').addEventListener('click', bukaIntro);
   $('btn-latihan').addEventListener('click', mulaiLatihan);
   $('btn-mulai').addEventListener('click', mulaiSungguhan);
